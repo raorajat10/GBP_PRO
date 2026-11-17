@@ -3,9 +3,10 @@ import { brand } from "@/config/brand";
 
 const milestones = [
   { id: "M1", label: "Project foundation", done: true },
-  { id: "M2", label: "Login and roles", done: false },
-  { id: "M3", label: "Clients and agency dashboard", done: false },
+  { id: "M2", label: "Login and roles", done: true },
+  { id: "M3", label: "Clients and agency dashboard", done: true },
   { id: "M4", label: "Connect Google profile (mock)", done: false },
+  { id: "M5", label: "Profile audit score", done: false },
 ];
 
 export default function Home() {

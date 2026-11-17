@@ -12,9 +12,10 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
     "test:db": "vitest run --config vitest.db.config.mts",
-    "make-admin": "node --env-file=.env.local scripts/make-admin.mts"
+    "make-admin": "node --env-file=.env.local scripts/make-admin.mts",
+    "test:e2e:db": "playwright test --project=db"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

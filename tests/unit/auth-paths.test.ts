@@ -3,7 +3,14 @@ import { homePathForRole, isProtectedPath, safeNextPath } from "@/lib/auth/paths
 
 describe("isProtectedPath", () => {
   it("protects signed-in areas and their sub-pages", () => {
-    for (const p of ["/dashboard", "/dashboard/clients/1", "/team", "/home", "/no-access"]) {
+    for (const p of [
+      "/dashboard",
+      "/clients/new",
+      "/clients/abc",
+      "/team",
+      "/home",
+      "/no-access",
+    ]) {
       expect(isProtectedPath(p)).toBe(true);
     }
   });

@@ -2,7 +2,13 @@
 
 export type AppRole = "admin" | "manager" | "client";
 
-export const PROTECTED_PREFIXES = ["/dashboard", "/team", "/home", "/no-access"] as const;
+export const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/clients",
+  "/team",
+  "/home",
+  "/no-access",
+] as const;
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

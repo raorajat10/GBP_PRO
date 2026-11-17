@@ -61,5 +61,5 @@ See `docs/PLAN.md` §4. Supabase migrations live in `supabase/migrations/` (from
 ## Deploying (one-time setup)
 
 1. Push the repo to GitHub.
-2. On Vercel (**Pro plan**, which is required for commercial use), import the repo. The region is already pinned to `bom1` in `vercel.json`.
+2. On Vercel, import the repo. Use the **Hobby (free) plan while the product is non-commercial** (build and testing). Upgrade to Pro before onboarding paying clients. The region is already pinned to `bom1` in `vercel.json`.
 3. Add the env vars from `.env.example`. Every PR then gets a preview URL.

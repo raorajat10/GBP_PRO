@@ -6,14 +6,15 @@ This is an original product. Nothing here is copied from any competitor's code, 
 
 ## Approved decisions (2026-11-17)
 
-| #      | Decision                                                                                                                                                                                                                                      |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1     | Own brand name, not "Sarvatra". Placeholder **"GBP Pro"**, kept in one config value (`src/config/brand.ts`). The final name and domain will be confirmed later.                                                                               |
-| Q5     | Apply for GBP API access using **Sarvatra Energy Pvt Ltd's** existing verified Google Business Profile and website.                                                                                                                           |
-| Q6     | Support both connection methods. **Default and recommended: the client adds our team's Google account as Manager.** Owner OAuth is the alternative.                                                                                           |
-| Q8     | **Meta WhatsApp Cloud API directly**, no BSP/reseller.                                                                                                                                                                                        |
-| AI     | Model is a **setting per task** (`src/config/ai.ts`). Defaults: posts → Claude Sonnet 5.5, review replies → Claude Sonnet 5.5, profile audit → Claude Opus 5.5. Report summary → Sonnet 5.5 (follows the "everything except the audit" rule). |
-| Others | All other defaults in §1 accepted.                                                                                                                                                                                                            |
+| #       | Decision                                                                                                                                                                                                                                      |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1      | Own brand name, not "Sarvatra". Placeholder **"GBP Pro"**, kept in one config value (`src/config/brand.ts`). The final name and domain will be confirmed later.                                                                               |
+| Q5      | Apply for GBP API access using **Sarvatra Energy Pvt Ltd's** existing verified Google Business Profile and website.                                                                                                                           |
+| Q6      | Support both connection methods. **Default and recommended: the client adds our team's Google account as Manager.** Owner OAuth is the alternative.                                                                                           |
+| Q8      | **Meta WhatsApp Cloud API directly**, no BSP/reseller.                                                                                                                                                                                        |
+| AI      | Model is a **setting per task** (`src/config/ai.ts`). Defaults: posts → Claude Sonnet 5.5, review replies → Claude Sonnet 5.5, profile audit → Claude Opus 5.5. Report summary → Sonnet 5.5 (follows the "everything except the audit" rule). |
+| Hosting | **Vercel Hobby (free) during the non-commercial build/test phase.** Move to Vercel Pro (or a Mumbai VPS) **before the first paying client**, as part of M12. Hobby terms allow only non-commercial use.                                       |
+| Others  | All other defaults in §1 accepted.                                                                                                                                                                                                            |
 
 ---
 

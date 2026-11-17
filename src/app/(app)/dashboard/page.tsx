@@ -6,10 +6,11 @@ import { INDUSTRIES, LANGUAGES, labelFor } from "@/lib/clients/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
 import { StatusChip } from "@/components/status-chip";
+import { GbpStatusBanner } from "@/components/gbp-status-banner";
 
 export const metadata: Metadata = { title: "Clients" };
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   return (
     <Suspense
       fallback={
@@ -19,7 +20,12 @@ export default function DashboardPage() {
         </>
       }
     >
-      <ClientList />
+      {searchParams.then((sp) => (
+        <>
+          <GbpStatusBanner status={sp.gbp} />
+          <ClientList />
+        </>
+      ))}
     </Suspense>
   );
 }
@@ -32,7 +38,7 @@ async function ClientList() {
   const { data: clients, error } = await supabase
     .from("clients")
     .select(
-      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email)",
+      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email), locations(id)",
     )
     .order("business_name");
 
@@ -97,7 +103,12 @@ async function ClientList() {
                       .join(" · ")}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {c.status === "active" && c.locations.length === 0 && (
+                    <span className="bg-accent-soft rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                      Google not linked
+                    </span>
+                  )}
                   {c.status === "active" && !c.whatsapp_opt_in_at && (
                     <span
                       className="bg-accent-soft rounded-full px-2.5 py-0.5 text-xs font-semibold"

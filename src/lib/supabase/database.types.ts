@@ -91,6 +91,137 @@ export type Database = {
           },
         ];
       };
+      gbp_connections: {
+        Row: {
+          client_id: string | null;
+          connected_at: string;
+          connected_by: string | null;
+          google_account_label: string | null;
+          google_account_name: string;
+          id: string;
+          last_error: string | null;
+          mode: string;
+          provider: string;
+          refresh_token_encrypted: string | null;
+          status: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id?: string | null;
+          connected_at?: string;
+          connected_by?: string | null;
+          google_account_label?: string | null;
+          google_account_name: string;
+          id?: string;
+          last_error?: string | null;
+          mode: string;
+          provider: string;
+          refresh_token_encrypted?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          client_id?: string | null;
+          connected_at?: string;
+          connected_by?: string | null;
+          google_account_label?: string | null;
+          google_account_name?: string;
+          id?: string;
+          last_error?: string | null;
+          mode?: string;
+          provider?: string;
+          refresh_token_encrypted?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gbp_connections_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gbp_connections_connected_by_fkey";
+            columns: ["connected_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      locations: {
+        Row: {
+          address: Json | null;
+          client_id: string;
+          connection_id: string;
+          created_at: string;
+          gbp_account_name: string;
+          gbp_location_name: string;
+          id: string;
+          phone: string | null;
+          place_id: string | null;
+          primary_category: string | null;
+          review_url: string | null;
+          snapshot: NonNullable<Json>;
+          synced_at: string;
+          title: string;
+          website: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          address?: Json | null;
+          client_id: string;
+          connection_id: string;
+          created_at?: string;
+          gbp_account_name: string;
+          gbp_location_name: string;
+          id?: string;
+          phone?: string | null;
+          place_id?: string | null;
+          primary_category?: string | null;
+          review_url?: never;
+          snapshot: NonNullable<Json>;
+          synced_at?: string;
+          title: string;
+          website?: string | null;
+        };
+        Update: {
+          address?: Json | null;
+          client_id?: string;
+          connection_id?: string;
+          created_at?: string;
+          gbp_account_name?: string;
+          gbp_location_name?: string;
+          id?: string;
+          phone?: string | null;
+          place_id?: string | null;
+          primary_category?: string | null;
+          review_url?: never;
+          snapshot?: NonNullable<Json>;
+          synced_at?: string;
+          title?: string;
+          website?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "locations_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "locations_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "gbp_connections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;

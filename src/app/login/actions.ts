@@ -87,3 +87,18 @@ export async function verifyCode(_prev: LoginState, formData: FormData): Promise
   const next = safeNextPath(String(formData.get("next") ?? ""));
   redirect(next ?? homePathForRole(profile?.role ?? null));
 }
+
+/** "Continue with Google" for the team. Invite-only: Supabase refuses unknown Google accounts. */
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  const origin = (await headers()).get("origin") ?? serverEnv().APP_URL;
+  const callback = new URL("/auth/callback", origin);
+  if (next) callback.searchParams.set("next", next);
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: callback.toString() },
+  });
+  redirect(error || !data.url ? "/login?error=google" : data.url);
+}

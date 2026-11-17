@@ -11,25 +11,33 @@ import { StatusChip } from "@/components/status-chip";
 import { ClientForm } from "../client-form";
 import { OwnerInviteForm } from "../owner-invite-form";
 import { inviteOwnerAction, updateClientAction } from "../actions";
+import { GbpStatusBanner } from "@/components/gbp-status-banner";
+import { GoogleProfileSection } from "./google-profile";
 
 export const metadata: Metadata = { title: "Client" };
 
-export default function ClientPage({ params }: PageProps<"/clients/[id]">) {
+export default function ClientPage({ params, searchParams }: PageProps<"/clients/[id]">) {
   return (
     <>
       <Link href="/dashboard" className="text-ink-muted hover:text-primary w-fit text-sm">
         ← Clients
       </Link>
       <Suspense fallback={<ListSkeleton rows={4} />}>
-        {params.then(({ id }) => (
-          <ClientDetail id={id} />
+        {Promise.all([params, searchParams]).then(([{ id }, sp]) => (
+          <ClientDetail id={id} gbpStatus={sp.gbp} />
         ))}
       </Suspense>
     </>
   );
 }
 
-async function ClientDetail({ id }: { id: string }) {
+async function ClientDetail({
+  id,
+  gbpStatus,
+}: {
+  id: string;
+  gbpStatus: string | string[] | undefined;
+}) {
   const user = await requireUser(["admin", "manager"]);
   if (!z.uuid().safeParse(id).success) notFound();
 
@@ -53,6 +61,9 @@ async function ClientDetail({ id }: { id: string }) {
         <h1 className="text-2xl font-bold">{client.business_name}</h1>
         <StatusChip status={client.status} />
       </div>
+
+      <GbpStatusBanner status={gbpStatus} />
+      <GoogleProfileSection clientId={client.id} isAdmin={isAdmin} />
 
       <ClientForm
         action={updateClientAction.bind(null, client.id)}

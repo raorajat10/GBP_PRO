@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { publicSupabaseConfig } from "./config";
 import type { Database } from "./database.types";
 
@@ -9,6 +10,8 @@ import type { Database } from "./database.types";
  * Use in Server Components, Server Actions and Route Handlers.
  */
 export async function createSupabaseServerClient() {
+  // Session checks compare token expiry with the current time, so this is request-time only.
+  await connection();
   const cookieStore = await cookies();
   const { url, publishableKey } = publicSupabaseConfig();
 

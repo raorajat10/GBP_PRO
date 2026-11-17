@@ -7,6 +7,8 @@ describe("isProtectedPath", () => {
       "/dashboard",
       "/clients/new",
       "/clients/abc",
+      "/settings",
+      "/connect/google/sample",
       "/team",
       "/home",
       "/no-access",

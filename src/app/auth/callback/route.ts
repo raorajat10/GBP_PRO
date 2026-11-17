@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const next = safeNextPath(searchParams.get("next"));
 
+  // Google sign-in refused (e.g. this Google account wasn't invited).
+  if (searchParams.get("error"))
+    return NextResponse.redirect(new URL("/login?error=google", origin));
+
   const supabase = await createSupabaseServerClient();
   let ok = false;
   if (code) {

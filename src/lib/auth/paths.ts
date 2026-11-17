@@ -5,6 +5,8 @@ export type AppRole = "admin" | "manager" | "client";
 export const PROTECTED_PREFIXES = [
   "/dashboard",
   "/clients",
+  "/settings",
+  "/connect",
   "/team",
   "/home",
   "/no-access",

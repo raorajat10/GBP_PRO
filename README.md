@@ -31,6 +31,8 @@ npm run dev                    # http://localhost:3000
 | `npm run format` / `format:check` | Prettier (with Tailwind class sorting)                                  |
 | `npm test`                        | Unit + contract tests (Vitest)                                          |
 | `npm run test:e2e`                | Browser tests (Playwright; first run `npx playwright install chromium`) |
+| `npm run test:db`                 | Access-rule tests against the real Supabase project (local only)        |
+| `npm run test:e2e:db`             | Full journeys against the real Supabase project (local only)            |
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of the above on every PR.
 
@@ -40,6 +42,23 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of the abov
 - **Claude model per task:** [`src/config/ai.ts`](src/config/ai.ts). Defaults: posts, review replies and report summary use `claude-sonnet-5-5`; the audit uses `claude-opus-5-5`. Override per task with `AI_MODEL_POSTS`, `AI_MODEL_REVIEW_REPLIES`, `AI_MODEL_AUDIT` or `AI_MODEL_REPORT_SUMMARY`.
 - **Providers:** `GBP_PROVIDER=mock|google` and `MESSAGING_PROVIDER=mock|meta`. Both default to `mock`.
 - **Env validation:** [`src/lib/env.ts`](src/lib/env.ts). An invalid value fails at startup with a clear message.
+
+## Google Business Profile (sample data until approved)
+
+All Google access goes through `GbpProvider` ([src/lib/gbp/types.ts](src/lib/gbp/types.ts)). With `GBP_PROVIDER=mock` the app uses six sample Jaipur businesses, from weak to strong profiles. The real provider is added in M13 and must pass the same contract tests ([tests/contract/](tests/contract/)).
+
+- **Recommended:** an admin connects the team Google account once (**Settings**). Clients add that account as a Manager on their Business Profile, and each profile is then linked to a client from the client's page.
+- **Alternative:** the owner connects their own Google account from the client's page.
+- Google credentials (`gbp_connections`) can't be read by any signed-in user, not even admins. Only server code can, after checking permissions.
+
+## Google sign-in for the team (optional)
+
+1. In Google Cloud Console → **APIs & Services → OAuth consent screen**, set up an External app named after the product. Only the basic scopes are needed (email, profile, openid), so no Google review is required.
+2. Go to **Credentials → Create credentials → OAuth client ID → Web application**, and add this authorised redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+3. In Supabase → **Authentication → Sign In / Providers → Google**, enable it and paste the client ID and secret.
+4. Set `NEXT_PUBLIC_GOOGLE_SIGNIN=on` in Vercel and in `.env.local`, then redeploy.
+
+Sign-in stays invite-only: with "Allow new users to sign up" off in Supabase, only emails already added by an admin can get in.
 
 ## Design tokens
 

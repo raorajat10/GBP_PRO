@@ -5,7 +5,7 @@ const milestones = [
   { id: "M1", label: "Project foundation", done: true },
   { id: "M2", label: "Login and roles", done: true },
   { id: "M3", label: "Clients and agency dashboard", done: true },
-  { id: "M4", label: "Connect Google profile (mock)", done: false },
+  { id: "M4", label: "Connect Google profile (sample data)", done: true },
   { id: "M5", label: "Profile audit score", done: false },
 ];
 

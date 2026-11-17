@@ -8,6 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
+  // Locally the dev server compiles pages on first visit; one worker avoids false failures.
+  workers: isCI ? undefined : 1,
   reporter: isCI ? "github" : "list",
   use: { baseURL: `http://localhost:${PORT}`, trace: "on-first-retry" },
   projects: [

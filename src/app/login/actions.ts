@@ -41,6 +41,14 @@ export async function sendCode(_prev: LoginState, formData: FormData): Promise<L
     options: { shouldCreateUser: false, emailRedirectTo: callback.toString() },
   });
 
+  if (error?.code === "over_email_send_rate_limit") {
+    return {
+      step: "email",
+      email,
+      error:
+        "Sign-in emails are temporarily limited. Please try again in an hour, or contact your admin.",
+    };
+  }
   if (error?.status === 429) {
     return { step: "email", email, error: "Too many attempts. Wait a minute and try again." };
   }

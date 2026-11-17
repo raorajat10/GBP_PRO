@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/*
+ * GBP Pro design tokens (original palette — see README "Design tokens").
+ * Teal = growth/trust (primary actions), marigold = attention (pending approvals),
+ * warm paper background so dashboards feel calm rather than clinical.
+ */
+:root {
+  --paper: #faf8f4;
+  --surface: #ffffff;
+  --ink: #1b2430;
+  --ink-muted: #5a6573;
+  --line: #e6e1d8;
+  --primary: #0f6e5c;
+  --primary-ink: #ffffff;
+  --primary-soft: #e3f1ed;
+  --accent: #f2a33a;
+  --accent-soft: #fdf1df;
+  --danger: #b4372b;
+  --success: #2f7d3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #12171d;
+    --surface: #1a2129;
+    --ink: #eef1f4;
+    --ink-muted: #a3adb9;
+    --line: #2c3540;
+    --primary: #3fb39b;
+    --primary-ink: #0b1a16;
+    --primary-soft: #16302a;
+    --accent: #f5b35a;
+    --accent-soft: #3a2c16;
+    --danger: #ef7a6e;
+    --success: #6cc47a;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: var(--font-mukta), system-ui, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}

@@ -25,7 +25,11 @@ const serverEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function parseServerEnv(source: Record<string, string | undefined>): ServerEnv {
-  const result = serverEnvSchema.safeParse(source);
+  // `KEY=` (blank, as in .env.example) means "not set", not "set to an empty string".
+  const cleaned = Object.fromEntries(
+    Object.entries(source).filter(([, v]) => v !== undefined && v.trim() !== ""),
+  );
+  const result = serverEnvSchema.safeParse(cleaned);
   if (!result.success) {
     const issues = result.error.issues
       .map((i) => `  - ${i.path.join(".")}: ${i.message}`)

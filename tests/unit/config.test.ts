@@ -42,6 +42,12 @@ describe("server env", () => {
     expect(env.MESSAGING_PROVIDER).toBe("mock");
   });
 
+  it("treats blank values (KEY= in .env files) as not set", () => {
+    const env = parseServerEnv({ ANTHROPIC_API_KEY: "", GBP_PROVIDER: "  " });
+    expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.GBP_PROVIDER).toBe("mock");
+  });
+
   it("rejects an invalid provider value", () => {
     expect(() => parseServerEnv({ GBP_PROVIDER: "scraper" })).toThrow(/GBP_PROVIDER/);
   });

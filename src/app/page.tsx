@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { brand } from "@/config/brand";
 
 const milestones = [
@@ -18,6 +19,12 @@ export default function Home() {
         <h1 className="text-4xl font-bold tracking-tight">{brand.name}</h1>
         <p className="text-ink-muted text-xl">{brand.tagline}</p>
         <p className="text-ink-muted max-w-prose">{brand.description}</p>
+        <Link
+          href="/login"
+          className="bg-primary text-primary-ink mt-2 w-fit rounded-lg px-4 py-2.5 font-semibold"
+        >
+          Team sign in
+        </Link>
       </header>
 
       <section aria-labelledby="progress" className="border-line bg-surface rounded-2xl border p-6">

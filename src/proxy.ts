@@ -9,6 +9,14 @@ import { publicSupabaseConfig } from "@/lib/supabase/config";
  * protected page and action re-checks with requireUser() (src/lib/auth/dal.ts).
  */
 export async function proxy(request: NextRequest) {
+  // If Supabase falls back to the Site URL, the sign-in code arrives as "/?code=…".
+  // Forward it to the handler instead of silently dropping it.
+  if (request.nextUrl.pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = "/auth/callback";
+    return NextResponse.redirect(callbackUrl);
+  }
+
   let response = NextResponse.next({ request });
   const { url, publishableKey } = publicSupabaseConfig();
 

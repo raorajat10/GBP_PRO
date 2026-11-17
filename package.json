@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:db": "vitest run --config vitest.db.config.mts",
-    "make-admin": "node --env-file=.env.local scripts/make-admin.ts"
+    "make-admin": "node --env-file=.env.local scripts/make-admin.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -3,6 +3,122 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      audit_items: {
+        Row: {
+          audit_id: string;
+          check_key: string;
+          facts: string;
+          fix_source: string;
+          fix_text: string;
+          id: string;
+          points: number;
+          points_lost: number | null;
+          points_max: number;
+          rank: number;
+          status: string;
+          title: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          audit_id: string;
+          check_key: string;
+          facts: string;
+          fix_source?: string;
+          fix_text?: string;
+          id?: string;
+          points: number;
+          points_lost?: never;
+          points_max: number;
+          rank: number;
+          status: string;
+          title: string;
+        };
+        Update: {
+          audit_id?: string;
+          check_key?: string;
+          facts?: string;
+          fix_source?: string;
+          fix_text?: string;
+          id?: string;
+          points?: number;
+          points_lost?: never;
+          points_max?: number;
+          rank?: number;
+          status?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audit_items_audit_id_fkey";
+            columns: ["audit_id"];
+            isOneToOne: false;
+            referencedRelation: "audits";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      audits: {
+        Row: {
+          ai_model: string | null;
+          ai_worded_at: string | null;
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          location_id: string;
+          score: number;
+          snapshot_synced_at: string;
+          suggested_description: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          ai_model?: string | null;
+          ai_worded_at?: string | null;
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          location_id: string;
+          score: number;
+          snapshot_synced_at: string;
+          suggested_description?: string | null;
+        };
+        Update: {
+          ai_model?: string | null;
+          ai_worded_at?: string | null;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          location_id?: string;
+          score?: number;
+          snapshot_synced_at?: string;
+          suggested_description?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audits_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audits_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audits_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       client_users: {
         Row: {
           client_id: string;
@@ -155,6 +271,8 @@ export type Database = {
       locations: {
         Row: {
           address: Json | null;
+          audit_score: number | null;
+          audited_at: string | null;
           client_id: string;
           connection_id: string;
           created_at: string;
@@ -173,6 +291,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           address?: Json | null;
+          audit_score?: number | null;
+          audited_at?: string | null;
           client_id: string;
           connection_id: string;
           created_at?: string;
@@ -190,6 +310,8 @@ export type Database = {
         };
         Update: {
           address?: Json | null;
+          audit_score?: number | null;
+          audited_at?: string | null;
           client_id?: string;
           connection_id?: string;
           created_at?: string;

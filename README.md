@@ -51,6 +51,15 @@ All Google access goes through `GbpProvider` ([src/lib/gbp/types.ts](src/lib/gbp
 - **Alternative:** the owner connects their own Google account from the client's page.
 - Google credentials (`gbp_connections`) can't be read by any signed-in user, not even admins. Only server code can, after checking permissions.
 
+## Profile audit
+
+Each linked profile gets a 0–100 score from ten checks (description, categories, hours, photos, posts, reviews, replies and more), with a fix list ranked by points to win back. The score is plain code, no AI: [`src/lib/audit/checks.ts`](src/lib/audit/checks.ts). Weights, targets and the holiday list live in [`src/config/audit.ts`](src/config/audit.ts). Add next year's festival dates there each December.
+
+- A new audit is saved on every link and **Sync now**, so the history shows progress. **Re-score** recomputes from the stored data without calling Google.
+- **Write fixes with AI** asks Claude (the `audit` model in `src/config/ai.ts`) to make the fixes specific to the business and draft a description. It needs `ANTHROPIC_API_KEY`. Without the key, the standard fixes still show. AI text containing phone numbers or links, or a description outside 250–750 characters, is thrown away and the standard fix stays.
+- AI wording carries over to the next audit for checks whose findings haven't changed, so a sync doesn't pay for it again.
+- The weekly automatic re-audit arrives with the job runner in M8.
+
 ## Google sign-in for the team (optional)
 
 1. In Google Cloud Console → **APIs & Services → OAuth consent screen**, set up an External app named after the product. Only the basic scopes are needed (email, profile, openid), so no Google review is required.

@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { recordAudit } from "@/lib/audit/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -28,6 +29,17 @@ export async function canManageClient(clientId: string, role: string | null): Pr
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.from("clients").select("id").eq("id", clientId).maybeSingle();
   return Boolean(data);
+}
+
+/** Location must belong to this client — never trust ids from the browser. */
+export async function locationBelongsTo(locationId: string, clientId: string): Promise<boolean> {
+  if (!z.uuid().safeParse(locationId).success) return false;
+  const { data } = await createSupabaseAdminClient()
+    .from("locations")
+    .select("client_id")
+    .eq("id", locationId)
+    .maybeSingle();
+  return data?.client_id === clientId;
 }
 
 export async function getAgencyConnection(): Promise<ConnectionRow | null> {
@@ -130,6 +142,7 @@ export async function linkLocation(input: {
   clientId: string;
   connectionId: string;
   locationName: string;
+  userId?: string | null;
 }): Promise<{ locationId: string }> {
   const admin = createSupabaseAdminClient();
   const { data: conn } = await admin
@@ -170,15 +183,21 @@ export async function linkLocation(input: {
     throw new GbpError("This Google profile is already linked to a client.", "unknown");
   }
   if (error || !data) throw new GbpError("Couldn't link the profile. Try again.");
+  await auditQuietly({
+    locationId: data.id,
+    clientId: input.clientId,
+    snapshot,
+    userId: input.userId,
+  });
   return { locationId: data.id };
 }
 
 /** Re-read a linked profile from Google and refresh its snapshot. */
-export async function syncLocation(locationId: string): Promise<void> {
+export async function syncLocation(locationId: string, userId?: string | null): Promise<void> {
   const admin = createSupabaseAdminClient();
   const { data: loc } = await admin
     .from("locations")
-    .select("id, gbp_location_name, connection:gbp_connections(*)")
+    .select("id, client_id, gbp_location_name, connection:gbp_connections(*)")
     .eq("id", locationId)
     .single();
   if (!loc?.connection) throw new GbpError("Linked profile not found.", "not_found");
@@ -204,6 +223,16 @@ export async function syncLocation(locationId: string): Promise<void> {
     })
     .eq("id", locationId);
   if (error) throw new GbpError("Couldn't save the refreshed profile.");
+  await auditQuietly({ locationId, clientId: loc.client_id, snapshot, userId });
+}
+
+/** Re-score after every link/sync. The profile data is already saved, so an audit failure is logged, not shown. */
+async function auditQuietly(input: Parameters<typeof recordAudit>[0]) {
+  try {
+    await recordAudit(input);
+  } catch (e) {
+    console.error("Audit after sync failed", e);
+  }
 }
 
 export async function unlinkLocation(locationId: string): Promise<void> {

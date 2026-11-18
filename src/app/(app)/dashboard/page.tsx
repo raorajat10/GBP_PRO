@@ -6,6 +6,7 @@ import { INDUSTRIES, LANGUAGES, labelFor } from "@/lib/clients/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
 import { StatusChip } from "@/components/status-chip";
+import { ScoreBadge } from "@/components/score-badge";
 import { GbpStatusBanner } from "@/components/gbp-status-banner";
 
 export const metadata: Metadata = { title: "Clients" };
@@ -38,7 +39,7 @@ async function ClientList() {
   const { data: clients, error } = await supabase
     .from("clients")
     .select(
-      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email), locations(id)",
+      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email), locations(id, audit_score)",
     )
     .order("business_name");
 
@@ -104,6 +105,9 @@ async function ClientList() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {c.locations[0]?.audit_score != null && (
+                    <ScoreBadge score={c.locations[0].audit_score} />
+                  )}
                   {c.status === "active" && c.locations.length === 0 && (
                     <span className="bg-accent-soft rounded-full px-2.5 py-0.5 text-xs font-semibold">
                       Google not linked

@@ -21,7 +21,8 @@ export interface AiTaskConfig {
 const DEFAULTS: Record<AiTask, AiTaskConfig> = {
   posts: { model: "claude-sonnet-5-5", effort: "medium", maxTokens: 4000 },
   reviewReplies: { model: "claude-sonnet-5-5", effort: "low", maxTokens: 2000 },
-  audit: { model: "claude-opus-5-5", effort: "medium", maxTokens: 6000 },
+  // A ceiling, not a target: thinking counts towards it, so leave headroom to avoid cut-offs.
+  audit: { model: "claude-opus-5-5", effort: "medium", maxTokens: 16000 },
   reportSummary: { model: "claude-sonnet-5-5", effort: "low", maxTokens: 1500 },
 };
 

@@ -4,25 +4,19 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/dal";
-import { canManageClient, linkLocation, syncLocation, unlinkLocation } from "@/lib/gbp/service";
+import {
+  canManageClient,
+  linkLocation,
+  locationBelongsTo,
+  syncLocation,
+  unlinkLocation,
+} from "@/lib/gbp/service";
 import { GbpError } from "@/lib/gbp/types";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { FormState } from "./actions";
 
 const failure = (e: unknown): FormState => ({
   message: e instanceof GbpError ? e.message : "Something went wrong. Please try again.",
 });
-
-/** Location must belong to this client — never trust ids from the browser. */
-async function locationBelongsTo(locationId: string, clientId: string) {
-  if (!z.uuid().safeParse(locationId).success) return false;
-  const { data } = await createSupabaseAdminClient()
-    .from("locations")
-    .select("client_id")
-    .eq("id", locationId)
-    .maybeSingle();
-  return data?.client_id === clientId;
-}
 
 export async function linkProfileAction(
   clientId: string,
@@ -41,7 +35,7 @@ export async function linkProfileAction(
     return { message: "Choose a profile from the list." };
   }
   try {
-    await linkLocation({ clientId, connectionId, locationName });
+    await linkLocation({ clientId, connectionId, locationName, userId: user.id });
   } catch (e) {
     return failure(e);
   }
@@ -63,7 +57,7 @@ export async function syncProfileAction(
     return { message: "You don't have access to this profile." };
   }
   try {
-    await syncLocation(locationId);
+    await syncLocation(locationId, user.id);
   } catch (e) {
     return failure(e);
   }

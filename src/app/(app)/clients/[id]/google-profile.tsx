@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ActionForm } from "@/components/action-form";
 import { inputClass } from "@/components/form-field";
 import { linkProfileAction, syncProfileAction, unlinkProfileAction } from "../gbp-actions";
+import { AuditSection } from "./audit-section";
 
 const nf = new Intl.NumberFormat("en-IN");
 
@@ -45,18 +46,21 @@ export async function GoogleProfileSection({
     .maybeSingle();
 
   return (
-    <section className="border-line bg-surface flex flex-col gap-4 rounded-2xl border p-5">
-      <h2 className="text-lg font-semibold">Google Business Profile</h2>
-      {location ? (
-        <Linked
-          clientId={clientId}
-          isAdmin={isAdmin}
-          location={{ ...location, snapshot: location.snapshot as unknown as LocationSnapshot }}
-        />
-      ) : (
-        <NotLinked clientId={clientId} isAdmin={isAdmin} />
-      )}
-    </section>
+    <>
+      <section className="border-line bg-surface flex flex-col gap-4 rounded-2xl border p-5">
+        <h2 className="text-lg font-semibold">Google Business Profile</h2>
+        {location ? (
+          <Linked
+            clientId={clientId}
+            isAdmin={isAdmin}
+            location={{ ...location, snapshot: location.snapshot as unknown as LocationSnapshot }}
+          />
+        ) : (
+          <NotLinked clientId={clientId} isAdmin={isAdmin} />
+        )}
+      </section>
+      {location && <AuditSection clientId={clientId} locationId={location.id} />}
+    </>
   );
 }
 

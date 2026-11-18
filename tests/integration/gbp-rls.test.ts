@@ -177,4 +177,91 @@ describe.skipIf(!configured)("Google connections and locations: row-level securi
     });
     expect(dup.error?.code).toBe("23505");
   });
+
+  // ───────────── M5: audits ─────────────
+
+  it("audits and their fix lists follow client access and can't be written by users", async () => {
+    const { data: locs } = await service
+      .from("locations")
+      .select("id, client_id, title")
+      .like("gbp_location_name", `locations/${tag}%`);
+    for (const loc of locs ?? []) {
+      const { data: audit, error } = await service
+        .from("audits")
+        .insert({
+          location_id: loc.id,
+          client_id: loc.client_id,
+          score: 40,
+          snapshot_synced_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const { error: itemErr } = await service.from("audit_items").insert({
+        audit_id: audit.id,
+        check_key: "photos",
+        status: "fail",
+        points: 4,
+        points_max: 14,
+        rank: 1,
+        title: `${loc.title} photos`,
+        facts: "3 photos.",
+      });
+      if (itemErr) throw itemErr;
+    }
+
+    const items = async (c: SupabaseClient) =>
+      (
+        (await c.from("audit_items").select("title, points_lost").like("title", `${tag}%`)).data ??
+        []
+      )
+        .map((i) => `${i.title}:${i.points_lost}`)
+        .sort();
+    expect(await items(as.admin)).toEqual([`${tag} loc A photos:10`, `${tag} loc B photos:10`]);
+    expect(await items(as.managerA)).toEqual([`${tag} loc A photos:10`]);
+    expect(await items(as.clientA)).toEqual([`${tag} loc A photos:10`]);
+
+    const audits = async (c: SupabaseClient) =>
+      (await c.from("audits").select("id").in("client_id", [clientA, clientB])).data?.length ?? 0;
+    expect(await audits(as.admin)).toBe(2);
+    expect(await audits(as.managerB)).toBe(1);
+    expect(await audits(as.clientA)).toBe(1);
+
+    const forged = await as.admin.from("audits").insert({
+      location_id: locs![0].id,
+      client_id: locs![0].client_id,
+      score: 100,
+      snapshot_synced_at: new Date().toISOString(),
+    });
+    expect(forged.error).not.toBeNull();
+
+    const edited = await as.managerA
+      .from("audit_items")
+      .update({ fix_text: "hacked" })
+      .like("title", `${tag}%`)
+      .select("id");
+    expect(edited.error !== null || (edited.data ?? []).length === 0).toBe(true);
+
+    const score = await as.managerA
+      .from("locations")
+      .update({ audit_score: 100 })
+      .eq("gbp_location_name", `locations/${tag}-a`)
+      .select("id");
+    expect(score.error !== null || (score.data ?? []).length === 0).toBe(true);
+  });
+
+  it("an audit can't score outside 0–100", async () => {
+    const { data: loc } = await service
+      .from("locations")
+      .select("id, client_id")
+      .eq("gbp_location_name", `locations/${tag}-a`)
+      .single();
+    const bad = await service.from("audits").insert({
+      location_id: loc!.id,
+      client_id: loc!.client_id,
+      score: 101,
+      snapshot_synced_at: new Date().toISOString(),
+    });
+    expect(bad.error?.code).toBe("23514");
+  });
 });

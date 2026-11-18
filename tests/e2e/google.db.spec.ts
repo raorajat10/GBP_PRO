@@ -120,6 +120,36 @@ test("admin links a team-account profile to a client and sees its numbers", asyn
   await expect(page.getByText("Synced just now.")).toBeVisible();
 });
 
+test("linking runs the profile audit: score, ranked fixes, re-score, dashboard score", async ({
+  page,
+}) => {
+  await signInAs(page, managerEmail);
+  await page.goto(`/clients/${assignedClient}`);
+  const audit = page.getByRole("region", { name: "Profile audit" });
+  await expect(audit.getByText("/ 100")).toBeVisible();
+  const fixes = audit.getByRole("list", { name: "Fixes, most important first" });
+  const passed = audit.getByText(/checks? pass(es)?$/);
+  await expect(fixes.or(passed).first()).toBeVisible();
+  if (await fixes.isVisible()) {
+    await expect(fixes.getByRole("listitem").first()).toContainText("pts possible");
+  }
+  await audit.getByRole("button", { name: "Re-score" }).click();
+  await expect(audit.getByText("Audit updated.")).toBeVisible();
+
+  const { data: loc } = await service
+    .from("locations")
+    .select("audit_score")
+    .eq("client_id", assignedClient)
+    .single();
+  expect(loc?.audit_score).toEqual(expect.any(Number));
+  await page.goto("/dashboard");
+  await expect(
+    page
+      .getByRole("link", { name: new RegExp(`${tag} Assigned Solar`) })
+      .getByTitle(new RegExp(`Profile score ${loc!.audit_score}/100`)),
+  ).toBeVisible();
+});
+
 test("owner connects their own Google account and it links automatically", async ({ page }) => {
   await signInAs(page, adminEmail);
   await page.goto(`/clients/${otherClient}`);

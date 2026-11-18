@@ -32,6 +32,9 @@ async function UserMenu() {
           <Link href="/dashboard" className="hover:text-primary">
             Clients
           </Link>
+          <Link href="/reply-studio" className="hover:text-primary">
+            Reply studio
+          </Link>
           {user.role === "admin" && (
             <>
               <Link href="/team" className="hover:text-primary">

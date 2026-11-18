@@ -69,6 +69,28 @@ From a client's page, **Posts → New post**: add a photo and a one-line note, p
 - Photos are turned the right way up, shrunk to 1,600 px, re-encoded as JPEG (which removes GPS and other metadata) and stored in a **private** bucket. Pages show them through links that expire after an hour.
 - Owners can't see drafts. The database refuses to schedule or publish any post until client approval exists (added in M7).
 
+## Approvals (owner says yes before anything is posted)
+
+On a post, **Send for approval**:
+
+- If the owner has a WhatsApp number **and** has agreed to WhatsApp messages, they get the post on WhatsApp with **Approve** and **Request change** buttons. With `MESSAGING_PROVIDER=mock` nothing is really sent; the message is only logged.
+- Either way, the manager gets a **private link** (shown once) to share. The owner opens it on their phone without logging in and taps Approve or Request change (with a note).
+- **Approve:** the post becomes *Scheduled* for its time (or "as soon as approved"), and its text can no longer be edited. Publishing to Google comes in M8.
+- **Request change:** the post comes back with the owner's note. Edit it and **Send again**; the old link and buttons stop working.
+- **No answer:** a WhatsApp reminder after 24 hours, and the request expires after 72 hours. Nothing is ever posted automatically.
+
+How it's enforced: the link stores only a SHA-256 hash of its token; answers are recorded in one database transaction (double taps are safe); the database refuses to schedule a post without an approved request and refuses edits after sending; WhatsApp answers count only from the owner's own number, and the webhook checks Meta's signature.
+
+**Daily job:** `vercel.json` calls `/api/cron/approvals` once a day (Vercel Hobby allows daily jobs only) to expire requests and send reminders. Answers after the deadline are refused anyway. Set `CRON_SECRET` in Vercel.
+
+**Switching on real WhatsApp** (after the Meta setup in docs/PLAN.md §6.2):
+
+1. In WhatsApp Manager, create two **utility** templates in English (`en`) and Hindi (`hi`):
+   - `post_approval_request`: header **image**; body with 5 values — owner name, business, when it goes live, post preview, link; buttons: quick reply **Approve**, quick reply **Request change** (in that order).
+   - `approval_reminder`: body with 2 values — business, when the request expires; the same two buttons.
+2. Webhook: callback URL `https://<your-domain>/api/webhooks/whatsapp`, verify token = `META_WEBHOOK_VERIFY_TOKEN`, subscribe to **messages**.
+3. Set `MESSAGING_PROVIDER=meta` and the `META_*` values in Vercel, then redeploy.
+
 ## Google sign-in for the team (optional)
 
 1. In Google Cloud Console → **APIs & Services → OAuth consent screen**, set up an External app named after the product. Only the basic scopes are needed (email, profile, openid), so no Google review is required.

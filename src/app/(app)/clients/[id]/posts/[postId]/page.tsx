@@ -6,13 +6,14 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/dal";
 import { LANGUAGES } from "@/lib/clients/schema";
 import { getPost } from "@/lib/posts/service";
-import { earliestScheduleIstLocal, toIstLocal } from "@/lib/posts/rules";
+import { earliestScheduleIstLocal, isEditable, toIstLocal } from "@/lib/posts/rules";
 import { ActionForm } from "@/components/action-form";
 import { inputClass } from "@/components/form-field";
 import { ListSkeleton } from "@/components/skeleton";
 import { PostStatusChip, SampleBadge } from "@/components/post-status-chip";
 import { deletePostAction, regenerateDraftsAction, savePostAction } from "../../../post-actions";
 import { PostEditor } from "./post-editor";
+import { ApprovalPanel } from "./approval-panel";
 
 export const metadata: Metadata = { title: "Edit post" };
 
@@ -32,7 +33,7 @@ async function Post({ clientId, postId }: { clientId: string; postId: string }) 
   const post = await getPost(postId);
   // Row-level security already hides other managers' posts; this also checks the URL matches.
   if (!post || post.clientId !== clientId) notFound();
-  const editable = post.status === "draft";
+  const editable = isEditable(post.status);
 
   return (
     <>
@@ -71,6 +72,8 @@ async function Post({ clientId, postId }: { clientId: string; postId: string }) 
         }}
         minTime={earliestScheduleIstLocal()}
       />
+
+      <ApprovalPanel clientId={clientId} postId={postId} status={post.status} />
 
       {editable && (
         <section className="border-line bg-surface flex flex-col gap-4 rounded-2xl border p-5">

@@ -142,7 +142,7 @@ export function PostEditor({
         <Field
           label="Publish on (India time, optional)"
           name="scheduledFor"
-          hint="The post goes live only after the owner approves it. Sending for approval comes in the next update."
+          hint="Leave empty to post as soon as the owner approves. Nothing goes live without their approval."
           errors={e.scheduledFor}
         >
           <input

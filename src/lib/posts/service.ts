@@ -7,7 +7,7 @@ import type { Json } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { processPhoto } from "./photo";
-import { postIssues, type CtaType, type TopicType } from "./rules";
+import { EDITABLE_STATUSES, isEditable, postIssues, type CtaType, type TopicType } from "./rules";
 
 /**
  * Post drafts. Writes use the secret-key client, so callers must check the user may
@@ -172,7 +172,7 @@ export async function regenerateDrafts(input: {
     .eq("id", input.postId)
     .maybeSingle();
   if (!post) throw new PostError("Post not found.");
-  if (post.status !== "draft") throw new PostError("Only drafts can be rewritten.");
+  if (!isEditable(post.status)) throw new PostError("This post can't be changed now.");
 
   const { business } = await businessFor(post.client_id);
   const result = await getPostWriter().writePostDrafts({
@@ -191,7 +191,7 @@ export async function regenerateDrafts(input: {
       body: result.drafts[0].body,
     })
     .eq("id", post.id)
-    .eq("status", "draft");
+    .in("status", [...EDITABLE_STATUSES]);
   if (error) throw new PostError("Couldn't save the new drafts.");
 }
 
@@ -213,10 +213,12 @@ export async function savePostDraft(input: {
       scheduled_for: input.scheduledFor?.toISOString() ?? null,
     })
     .eq("id", input.postId)
-    .eq("status", "draft")
+    .in("status", [...EDITABLE_STATUSES])
     .select("id");
   if (error) throw new PostError("Couldn't save the post. Try again.");
-  if (!data?.length) throw new PostError("Only drafts can be edited.");
+  if (!data?.length) {
+    throw new PostError("This post is waiting for approval or scheduled, so it can't be edited.");
+  }
 }
 
 export async function deletePostDraft(postId: string): Promise<void> {
@@ -227,7 +229,11 @@ export async function deletePostDraft(postId: string): Promise<void> {
     .eq("id", postId)
     .maybeSingle();
   if (!post) return;
-  if (post.status !== "draft") throw new PostError("Only drafts can be deleted.");
+  if (!isEditable(post.status)) {
+    throw new PostError(
+      "A post waiting for approval or scheduled can't be deleted. Cancel the request first.",
+    );
+  }
   const { error } = await admin.from("posts").delete().eq("id", postId);
   if (error) {
     console.error("Deleting post failed", error);

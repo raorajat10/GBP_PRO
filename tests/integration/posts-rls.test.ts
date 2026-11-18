@@ -139,6 +139,48 @@ describe.skipIf(!configured)("posts and photos: row-level security and guardrail
     expect(http.error?.code).toBe("23514");
   });
 
+  it("approvals: owners see their own, nobody reads link hashes, and only the server writes", async () => {
+    const { data: sent } = await service
+      .from("posts")
+      .select("id")
+      .eq("source_note", `${tag} A sent`)
+      .single();
+    const { error } = await service.from("approvals").insert({
+      subject_id: sent!.id,
+      client_id: clientA,
+      token_hash: "f".repeat(64),
+      channel: "web",
+      expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+    });
+    if (error) throw error;
+
+    const count = async (c: SupabaseClient) =>
+      (await c.from("approvals").select("id, status").in("client_id", [clientA, clientB])).data
+        ?.length ?? 0;
+    expect(await count(as.ownerA)).toBe(1);
+    expect(await count(as.managerA)).toBe(1);
+    expect(await count(as.managerB)).toBe(0);
+
+    for (const who of ["admin", "ownerA"]) {
+      const hashes = await as[who].from("approvals").select("token_hash").eq("client_id", clientA);
+      expect(hashes.error?.code, who).toBe("42501"); // permission denied for that column
+    }
+    const forged = await as.ownerA
+      .from("approvals")
+      .update({ status: "approved" })
+      .eq("client_id", clientA)
+      .select("id");
+    expect(forged.error !== null || (forged.data ?? []).length === 0).toBe(true);
+
+    // Even the server can't schedule a post whose approval is only pending.
+    const sneak = await service.from("posts").update({ status: "scheduled" }).eq("id", sent!.id);
+    expect(sneak.error?.code).toBe("23514");
+
+    // The database functions can't be called by signed-in users.
+    const rpc = await as.ownerA.rpc("expire_post_approvals");
+    expect(rpc.error).not.toBeNull();
+  });
+
   it("photos are private: signed-in users can't read or upload to the media bucket", async () => {
     const path = `${clientA}/${tag}.jpg`;
     const up = await as.admin.storage

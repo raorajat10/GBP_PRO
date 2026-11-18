@@ -58,6 +58,11 @@ export function matchesLanguageScript(text: string, language: Language): boolean
   return language === "hi" ? share >= 0.5 : share <= 0.1;
 }
 
+/** Statuses in which the team may still edit, rewrite or delete a post. */
+export const EDITABLE_STATUSES = ["draft", "changes_requested", "expired"] as const;
+export const isEditable = (status: string) =>
+  (EDITABLE_STATUSES as readonly string[]).includes(status);
+
 // ───────────── call-to-action button ─────────────
 
 export const CTA_TYPES = [

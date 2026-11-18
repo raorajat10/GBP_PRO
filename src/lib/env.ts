@@ -20,6 +20,21 @@ const serverEnvSchema = z.object({
 
   // Anthropic (M5/M6)
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+
+  // WhatsApp Cloud API (M7) — only needed when MESSAGING_PROVIDER=meta
+  META_WA_ACCESS_TOKEN: z.string().min(1).optional(),
+  META_WA_PHONE_NUMBER_ID: z.string().regex(/^\d+$/).optional(),
+  META_APP_SECRET: z.string().min(1).optional(), // verifies webhook signatures
+  META_WEBHOOK_VERIFY_TOKEN: z.string().min(16).optional(),
+  META_GRAPH_VERSION: z
+    .string()
+    .regex(/^v\d+\.\d+$/)
+    .default("v23.0"),
+  WA_TEMPLATE_APPROVAL: z.string().default("post_approval_request"),
+  WA_TEMPLATE_REMINDER: z.string().default("approval_reminder"),
+
+  // Scheduled jobs (Vercel Cron sends "Authorization: Bearer $CRON_SECRET")
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

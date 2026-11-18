@@ -3,6 +3,83 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      approvals: {
+        Row: {
+          channel: string;
+          client_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          reminded_at: string | null;
+          responded_at: string | null;
+          responded_via: string | null;
+          response_note: string | null;
+          sent_by: string | null;
+          status: string;
+          subject_id: string;
+          subject_type: string;
+          token_hash: string;
+          wa_message_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          channel: string;
+          client_id: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          reminded_at?: string | null;
+          responded_at?: string | null;
+          responded_via?: string | null;
+          response_note?: string | null;
+          sent_by?: string | null;
+          status?: string;
+          subject_id: string;
+          subject_type?: string;
+          token_hash: string;
+          wa_message_id?: string | null;
+        };
+        Update: {
+          channel?: string;
+          client_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          reminded_at?: string | null;
+          responded_at?: string | null;
+          responded_via?: string | null;
+          response_note?: string | null;
+          sent_by?: string | null;
+          status?: string;
+          subject_id?: string;
+          subject_type?: string;
+          token_hash?: string;
+          wa_message_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "approvals_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approvals_sent_by_fkey";
+            columns: ["sent_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approvals_subject_id_fkey";
+            columns: ["subject_id"];
+            isOneToOne: false;
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_items: {
         Row: {
           audit_id: string;
@@ -396,6 +473,66 @@ export type Database = {
           },
         ];
       };
+      messages: {
+        Row: {
+          body: string | null;
+          client_id: string | null;
+          created_at: string;
+          direction: string;
+          error: string | null;
+          from_number: string | null;
+          id: string;
+          payload: Json;
+          provider: string;
+          provider_message_id: string | null;
+          status: string;
+          template_name: string | null;
+          to_number: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string | null;
+          client_id?: string | null;
+          created_at?: string;
+          direction: string;
+          error?: string | null;
+          from_number?: string | null;
+          id?: string;
+          payload?: Json;
+          provider: string;
+          provider_message_id?: string | null;
+          status?: string;
+          template_name?: string | null;
+          to_number?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          body?: string | null;
+          client_id?: string | null;
+          created_at?: string;
+          direction?: string;
+          error?: string | null;
+          from_number?: string | null;
+          id?: string;
+          payload?: Json;
+          provider?: string;
+          provider_message_id?: string | null;
+          status?: string;
+          template_name?: string | null;
+          to_number?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       posts: {
         Row: {
           ai_drafts: Json;
@@ -531,7 +668,28 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      cancel_post_approval: {
+        Args: { p_post_id: string };
+        Returns: boolean;
+      };
+      expire_post_approvals: {
+        Args: never;
+        Returns: { approval_id: string; client_id: string; post_id: string }[];
+      };
+      open_post_approval: {
+        Args: {
+          p_channel: string;
+          p_expires_at: string;
+          p_post_id: string;
+          p_sent_by: string;
+          p_token_hash: string;
+        };
+        Returns: string;
+      };
+      respond_to_post_approval: {
+        Args: { p_approval_id: string; p_decision: string; p_note: string; p_via: string };
+        Returns: string;
+      };
     };
     Enums: {
       app_role: "admin" | "manager" | "client";

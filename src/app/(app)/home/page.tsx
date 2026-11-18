@@ -22,7 +22,7 @@ async function ClientHome() {
   // Row-level security limits every query here to the owner's own business.
   const { data: businesses } = await supabase
     .from("clients")
-    .select("id, business_name, locations(id, audit_score)")
+    .select("id, business_name, locations(id, audit_score), posts(id, status)")
     .order("business_name");
 
   return (
@@ -36,6 +36,15 @@ async function ClientHome() {
               className="border-line bg-surface flex flex-col gap-3 rounded-xl border px-4 py-3"
             >
               <p className="font-semibold">{b.business_name}</p>
+              {(() => {
+                const waiting = b.posts.filter((p) => p.status === "pending_approval").length;
+                return waiting > 0 ? (
+                  <p className="bg-accent-soft rounded-lg px-3 py-2 text-sm">
+                    {waiting === 1 ? "1 post is" : `${waiting} posts are`} waiting for your
+                    approval. Open the WhatsApp message or link our team sent you.
+                  </p>
+                ) : null;
+              })()}
               {b.locations[0]?.audit_score != null ? (
                 <OwnerScore locationId={b.locations[0].id} score={b.locations[0].audit_score} />
               ) : (

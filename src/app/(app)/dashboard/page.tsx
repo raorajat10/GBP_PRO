@@ -39,7 +39,7 @@ async function ClientList() {
   const { data: clients, error } = await supabase
     .from("clients")
     .select(
-      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email), locations(id, audit_score)",
+      "id, business_name, industry, status, preferred_language, owner_whatsapp, whatsapp_opt_in_at, manager:profiles!clients_assigned_manager_id_fkey(full_name, email), locations(id, audit_score), posts(status)",
     )
     .order("business_name");
 
@@ -105,6 +105,21 @@ async function ClientList() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {c.posts.some((p) => p.status === "changes_requested") && (
+                    <span className="bg-accent-soft rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                      Changes requested
+                    </span>
+                  )}
+                  {c.posts.some((p) => p.status === "expired") && (
+                    <span className="bg-danger/10 text-danger rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                      Approval expired
+                    </span>
+                  )}
+                  {c.posts.some((p) => p.status === "pending_approval") && (
+                    <span className="bg-paper border-line rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+                      Waiting for owner
+                    </span>
+                  )}
                   {c.locations[0]?.audit_score != null && (
                     <ScoreBadge score={c.locations[0].audit_score} />
                   )}

@@ -1,5 +1,7 @@
 import type { AuditCheckKey } from "@/config/audit";
 import type { AuditStatus } from "@/lib/audit/checks";
+import type { Language } from "@/lib/clients/schema";
+import { matchesLanguageScript, postIssues, type TopicType } from "@/lib/posts/rules";
 
 /**
  * Everything the app asks an AI model to write goes through this interface, so tests
@@ -36,10 +38,37 @@ export interface AuditFixResult {
   model: string;
 }
 
+export interface PostDraftRequest {
+  business: {
+    title: string;
+    category: string | null;
+    area: string | null;
+    city: string | null;
+    industry: string | null; // battery | solar | clinic | retail | other
+    services: string[];
+    brandNotes: string | null;
+  };
+  /** What the account manager typed, e.g. "Exide inverter battery offer, 2-year warranty". */
+  note: string;
+  language: Language;
+  topicType: TopicType;
+  /** The resized JPEG, so the model can describe what's actually in the photo. */
+  photo: { base64: string; mediaType: "image/jpeg" } | null;
+}
+
+export interface PostDraftResult {
+  drafts: { body: string; angle: string }[];
+  model: string;
+}
+
 export interface AiWriter {
   readonly model: string;
   writeAuditFixes(input: AuditFixRequest): Promise<AuditFixResult>;
+  writePostDrafts(input: PostDraftRequest): Promise<PostDraftResult>;
 }
+
+/** How many drafts the post generator offers. */
+export const POST_DRAFT_COUNT = 3;
 
 export class AiError extends Error {
   constructor(
@@ -94,4 +123,38 @@ export function sanitizeAuditFixes(
     }
   }
   return { fixes, suggestedDescription, model };
+}
+
+/**
+ * Keep only post drafts that are safe to show: within Google's length limit, no phone
+ * numbers or links, and in the script the chosen language needs. Throws if none survive,
+ * so the manager is never handed a draft that breaks the rules.
+ */
+export function sanitizePostDrafts(
+  input: Pick<PostDraftRequest, "language">,
+  raw: { drafts: { body: string; angle: string }[] },
+  model: string,
+  options: { checkScript?: boolean } = {},
+): PostDraftResult {
+  const checkScript = options.checkScript ?? true;
+  const seen = new Set<string>();
+  const drafts: PostDraftResult["drafts"] = [];
+  for (const d of raw.drafts) {
+    const body = d.body
+      .trim()
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n");
+    if (seen.has(body) || postIssues(body).length) continue;
+    if (checkScript && !matchesLanguageScript(body, input.language)) continue;
+    seen.add(body);
+    drafts.push({ body, angle: d.angle.trim().slice(0, 60) || "Draft" });
+    if (drafts.length === POST_DRAFT_COUNT) break;
+  }
+  if (!drafts.length) {
+    throw new AiError(
+      "The AI's drafts broke the posting rules (length, phone numbers or language). Try again.",
+      "invalid_output",
+    );
+  }
+  return { drafts, model };
 }

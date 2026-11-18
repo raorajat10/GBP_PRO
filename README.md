@@ -60,6 +60,15 @@ Each linked profile gets a 0–100 score from ten checks (description, categorie
 - AI wording carries over to the next audit for checks whose findings haven't changed, so a sync doesn't pay for it again.
 - The weekly automatic re-audit arrives with the job runner in M8.
 
+## Posts (AI drafts)
+
+From a client's page, **Posts → New post**: add a photo and a one-line note, pick English, Hindi or Hinglish, and get three drafts to choose from. Then edit, choose the button (Call now / website) and a publish time, and save.
+
+- Drafts come from Claude (the `posts` model in `src/config/ai.ts`), which also sees the photo. Without `ANTHROPIC_API_KEY`, simple **sample drafts** are made from the note so the flow can be tried; they're labelled "Sample draft".
+- Rules checked in code, not just in the prompt ([`src/lib/posts/rules.ts`](src/lib/posts/rules.ts)): at most 1,500 characters, no phone numbers (including Hindi digits), no links, and the right script for the language. Drafts that break a rule are thrown away. The editor shows the same checks live, and saving is refused until they pass.
+- Photos are turned the right way up, shrunk to 1,600 px, re-encoded as JPEG (which removes GPS and other metadata) and stored in a **private** bucket. Pages show them through links that expire after an hour.
+- Owners can't see drafts. The database refuses to schedule or publish any post until client approval exists (added in M7).
+
 ## Google sign-in for the team (optional)
 
 1. In Google Cloud Console → **APIs & Services → OAuth consent screen**, set up an External app named after the product. Only the basic scopes are needed (email, profile, openid), so no Google review is required.

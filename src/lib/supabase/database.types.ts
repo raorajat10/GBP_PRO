@@ -344,6 +344,157 @@ export type Database = {
           },
         ];
       };
+      media_assets: {
+        Row: {
+          bytes: number;
+          client_id: string;
+          created_at: string;
+          height: number;
+          id: string;
+          mime: string;
+          storage_path: string;
+          uploaded_by: string | null;
+          width: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes: number;
+          client_id: string;
+          created_at?: string;
+          height: number;
+          id?: string;
+          mime: string;
+          storage_path: string;
+          uploaded_by?: string | null;
+          width: number;
+        };
+        Update: {
+          bytes?: number;
+          client_id?: string;
+          created_at?: string;
+          height?: number;
+          id?: string;
+          mime?: string;
+          storage_path?: string;
+          uploaded_by?: string | null;
+          width?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "media_assets_uploaded_by_fkey";
+            columns: ["uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      posts: {
+        Row: {
+          ai_drafts: Json;
+          ai_model: string | null;
+          body: string;
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          cta_type: string | null;
+          cta_url: string | null;
+          error: string | null;
+          gbp_post_name: string | null;
+          id: string;
+          language: string;
+          location_id: string | null;
+          media_asset_id: string | null;
+          published_at: string | null;
+          scheduled_for: string | null;
+          source_note: string;
+          status: string;
+          topic_type: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          ai_drafts?: Json;
+          ai_model?: string | null;
+          body?: string;
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          cta_type?: string | null;
+          cta_url?: string | null;
+          error?: string | null;
+          gbp_post_name?: string | null;
+          id?: string;
+          language: string;
+          location_id?: string | null;
+          media_asset_id?: string | null;
+          published_at?: string | null;
+          scheduled_for?: string | null;
+          source_note: string;
+          status?: string;
+          topic_type?: string;
+          updated_at?: string;
+        };
+        Update: {
+          ai_drafts?: Json;
+          ai_model?: string | null;
+          body?: string;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          cta_type?: string | null;
+          cta_url?: string | null;
+          error?: string | null;
+          gbp_post_name?: string | null;
+          id?: string;
+          language?: string;
+          location_id?: string | null;
+          media_asset_id?: string | null;
+          published_at?: string | null;
+          scheduled_for?: string | null;
+          source_note?: string;
+          status?: string;
+          topic_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "posts_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_media_asset_id_fkey";
+            columns: ["media_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "media_assets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;

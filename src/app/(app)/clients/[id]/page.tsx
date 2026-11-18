@@ -60,6 +60,12 @@ async function ClientDetail({
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">{client.business_name}</h1>
         <StatusChip status={client.status} />
+        <Link
+          href={`/clients/${client.id}/posts`}
+          className="border-line hover:border-primary ml-auto rounded-lg border px-3 py-1.5 text-sm font-medium"
+        >
+          Posts →
+        </Link>
       </div>
 
       <GbpStatusBanner status={gbpStatus} />

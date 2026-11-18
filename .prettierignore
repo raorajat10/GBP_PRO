@@ -6,3 +6,5 @@ test-results
 supabase/.temp
 package-lock.json
 AGENTS.md
+# Large data files (not hand-edited)
+public/data

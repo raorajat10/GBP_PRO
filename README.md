@@ -75,7 +75,7 @@ On a post, **Send for approval**:
 
 - If the owner has a WhatsApp number **and** has agreed to WhatsApp messages, they get the post on WhatsApp with **Approve** and **Request change** buttons. With `MESSAGING_PROVIDER=mock` nothing is really sent; the message is only logged.
 - Either way, the manager gets a **private link** (shown once) to share. The owner opens it on their phone without logging in and taps Approve or Request change (with a note).
-- **Approve:** the post becomes *Scheduled* for its time (or "as soon as approved"), and its text can no longer be edited. Publishing to Google comes in M8.
+- **Approve:** the post becomes _Scheduled_ for its time (or "as soon as approved"), and its text can no longer be edited. Publishing to Google comes in M8.
 - **Request change:** the post comes back with the owner's note. Edit it and **Send again**; the old link and buttons stop working.
 - **No answer:** a WhatsApp reminder after 24 hours, and the request expires after 72 hours. Nothing is ever posted automatically.
 

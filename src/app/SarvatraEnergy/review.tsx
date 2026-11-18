@@ -96,6 +96,8 @@ export function ReviewDemo() {
   // Generate comments after loading and whenever filters change
   useEffect(() => {
     if (!loading && allSamples.length > 0) {
+      // Re-pick after loading or a filter change; the random pick can't be computed during render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       generateComments();
     }
   }, [loading, allSamples, generateComments]);

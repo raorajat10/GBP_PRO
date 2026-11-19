@@ -3,13 +3,17 @@ import { z } from "zod";
 /**
  * What we remember (in an httpOnly cookie) between "Connect Google" and Google's redirect
  * back. The `state` sent to Google is the nonce; the callback only accepts it if the
- * cookie matches, belongs to the same signed-in user and is recent (CSRF protection).
+ * cookie matches and is recent (CSRF protection), and either:
+ *   - it belongs to the same signed-in team member, or
+ *   - it came from an owner invite link (inviteId set, no team member involved). The
+ *     invite itself is re-checked in the database before anything is saved.
  */
 const intentSchema = z.object({
   nonce: z.string().min(16),
   mode: z.enum(["agency", "owner"]),
   clientId: z.uuid().nullable(),
-  userId: z.string().min(1),
+  userId: z.string().min(1).nullable(),
+  inviteId: z.uuid().optional(),
   createdAt: z.number(),
 });
 
@@ -34,15 +38,21 @@ export function decodeIntent(raw: string | undefined | null): ConnectIntent | nu
 export function isIntentValid(
   intent: ConnectIntent | null,
   state: string | null,
-  userId: string,
+  userId: string | null,
   now: number = Date.now(),
 ): intent is ConnectIntent {
-  return (
-    intent !== null &&
-    state !== null &&
-    intent.nonce === state &&
-    intent.userId === userId &&
-    now - intent.createdAt <= INTENT_MAX_AGE_SECONDS * 1000 &&
-    (intent.mode === "agency") === (intent.clientId === null)
-  );
+  if (
+    intent === null ||
+    state === null ||
+    intent.nonce !== state ||
+    now - intent.createdAt > INTENT_MAX_AGE_SECONDS * 1000 ||
+    (intent.mode === "agency") !== (intent.clientId === null)
+  ) {
+    return false;
+  }
+  if (intent.inviteId) {
+    // Owner invites: always "owner" mode, never tied to a team member's session.
+    return intent.mode === "owner" && intent.userId === null;
+  }
+  return userId !== null && intent.userId === userId;
 }

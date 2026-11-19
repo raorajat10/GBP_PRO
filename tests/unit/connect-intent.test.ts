@@ -36,6 +36,24 @@ describe("connect intent (CSRF protection for Connect Google)", () => {
     expect(isIntentValid(null, base.nonce, "user-1", now)).toBe(false);
   });
 
+  it("owner invites work without a team session, but only in owner mode and only from the cookie", () => {
+    const invite: ConnectIntent = {
+      ...base,
+      userId: null,
+      inviteId: "7d1f3c2a-1b2c-4d3e-8f90-112233445566",
+    };
+    const now = invite.createdAt + 1000;
+    expect(decodeIntent(encodeIntent(invite))).toEqual(invite);
+    expect(isIntentValid(invite, invite.nonce, null, now)).toBe(true);
+    expect(isIntentValid(invite, "other", null, now)).toBe(false);
+    expect(
+      isIntentValid({ ...invite, mode: "agency", clientId: null }, invite.nonce, null, now),
+    ).toBe(false);
+    expect(isIntentValid({ ...invite, userId: "user-1" }, invite.nonce, "user-1", now)).toBe(false);
+    // A normal (non-invite) intent still needs the same signed-in user.
+    expect(isIntentValid({ ...base }, base.nonce, null, now)).toBe(false);
+  });
+
   it("rejects mismatched mode and client (agency must have no client, owner must have one)", () => {
     const now = base.createdAt + 1000;
     expect(isIntentValid({ ...base, mode: "agency" }, base.nonce, "user-1", now)).toBe(false);

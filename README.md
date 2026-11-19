@@ -48,7 +48,8 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of the abov
 All Google access goes through `GbpProvider` ([src/lib/gbp/types.ts](src/lib/gbp/types.ts)). With `GBP_PROVIDER=mock` the app uses six sample Jaipur businesses, from weak to strong profiles. The real provider is added in M13 and must pass the same contract tests ([tests/contract/](tests/contract/)).
 
 - **Recommended:** an admin connects the team Google account once (**Settings**). Clients add that account as a Manager on their Business Profile, and each profile is then linked to a client from the client's page.
-- **Alternative:** the owner connects their own Google account from the client's page.
+- **Alternative — owner approves from their phone:** on an unlinked client, **Create invite link** (or enter the owner's email to send it). The owner opens the private link without logging in, taps **Continue with Google**, signs in with the account that owns the profile and approves access. The profile then links to that client and gets its first audit. Links work once and expire after 7 days; the team can cancel them. Only a hash of each link is stored. Until Google approves our API access, the Google step is a clearly labelled sample screen.
+- **Alternative — with the owner:** the owner signs in on the manager's device ("Connect owner's Google account").
 - Google credentials (`gbp_connections`) can't be read by any signed-in user, not even admins. Only server code can, after checking permissions.
 
 ## Profile audit

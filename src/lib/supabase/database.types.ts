@@ -284,6 +284,71 @@ export type Database = {
           },
         ];
       };
+      connect_invites: {
+        Row: {
+          client_id: string;
+          connection_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          email_status: string;
+          expires_at: string;
+          id: string;
+          sent_to_email: string | null;
+          status: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          connection_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email_status?: string;
+          expires_at: string;
+          id?: string;
+          sent_to_email?: string | null;
+          status?: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          client_id?: string;
+          connection_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email_status?: string;
+          expires_at?: string;
+          id?: string;
+          sent_to_email?: string | null;
+          status?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "connect_invites_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "connect_invites_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "gbp_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "connect_invites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       gbp_connections: {
         Row: {
           client_id: string | null;

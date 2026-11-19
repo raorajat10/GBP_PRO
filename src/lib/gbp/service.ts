@@ -61,7 +61,7 @@ export async function saveConnection(input: {
   clientId: string | null;
   accountName: string;
   label: string;
-  userId: string;
+  userId: string | null; // null when the owner connected through an invite link
 }): Promise<ConnectionRow> {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin

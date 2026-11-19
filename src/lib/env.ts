@@ -33,6 +33,10 @@ const serverEnvSchema = z.object({
   WA_TEMPLATE_APPROVAL: z.string().default("post_approval_request"),
   WA_TEMPLATE_REMINDER: z.string().default("approval_reminder"),
 
+  // Email through Resend (owner connect invites). EMAIL_FROM must be on the verified domain.
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(3).optional(),
+
   // Scheduled jobs (Vercel Cron sends "Authorization: Bearer $CRON_SECRET")
   CRON_SECRET: z.string().min(16).optional(),
 });

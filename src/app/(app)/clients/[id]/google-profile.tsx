@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { formatIst } from "@/lib/approvals/format";
+import { listInvites } from "@/lib/gbp/invites";
 import { listLinkCandidates } from "@/lib/gbp/service";
 import type { LocationSnapshot } from "@/lib/gbp/snapshot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ActionForm } from "@/components/action-form";
 import { inputClass } from "@/components/form-field";
 import { linkProfileAction, syncProfileAction, unlinkProfileAction } from "../gbp-actions";
+import { cancelInviteAction, createInviteAction } from "../invite-actions";
 import { AuditSection } from "./audit-section";
+import { CancelInviteButton, InviteForm } from "./invite-form";
 
 const nf = new Intl.NumberFormat("en-IN");
 
@@ -153,7 +157,12 @@ function Linked({
 }
 
 async function NotLinked({ clientId, isAdmin }: { clientId: string; isAdmin: boolean }) {
-  const groups = await listLinkCandidates(clientId);
+  const supabase = await createSupabaseServerClient();
+  const [groups, { data: client }] = await Promise.all([
+    listLinkCandidates(clientId),
+    supabase.from("clients").select("business_name").eq("id", clientId).single(),
+  ]);
+  const businessName = client?.business_name ?? "your business";
   const hasTeamAccount = groups.some((g) => g.mode === "agency_manager");
   const options = groups.flatMap((g) => g.locations);
 
@@ -220,10 +229,25 @@ async function NotLinked({ clientId, isAdmin }: { clientId: string; isAdmin: boo
         </p>
       )}
 
+      <div className="border-line flex flex-col gap-3 border-t pt-4">
+        <div>
+          <p className="text-sm font-medium">
+            Or: ask the owner to approve access from their phone
+          </p>
+          <p className="text-ink-muted text-sm">
+            They get a private link (by email, or you share it on WhatsApp), sign in with the Google
+            account that owns the profile, and approve. The profile then links here automatically.
+            The link works once and expires in 7 days.
+          </p>
+        </div>
+        <InviteForm action={createInviteAction.bind(null, clientId)} businessName={businessName} />
+        <InviteList clientId={clientId} />
+      </div>
+
       <div className="border-line flex flex-col gap-2 border-t pt-4">
         <p className="text-sm">
-          <span className="font-medium">Or: the owner connects their own Google account.</span>{" "}
-          <span className="text-ink-muted">Use this when you&apos;re with the owner.</span>
+          <span className="font-medium">Or: you&apos;re with the owner right now.</span>{" "}
+          <span className="text-ink-muted">They sign in on this device.</span>
         </p>
         <a
           href={`/api/gbp/connect?mode=owner&clientId=${clientId}`}
@@ -233,5 +257,32 @@ async function NotLinked({ clientId, isAdmin }: { clientId: string; isAdmin: boo
         </a>
       </div>
     </>
+  );
+}
+
+const inviteStatus: Record<string, string> = {
+  pending: "Waiting for the owner",
+  used: "Approved ✓",
+  cancelled: "Cancelled",
+  expired: "Expired",
+};
+
+async function InviteList({ clientId }: { clientId: string }) {
+  const invites = await listInvites(clientId);
+  if (!invites.length) return null;
+  return (
+    <ul className="flex flex-col gap-1 text-sm" aria-label="Recent invites">
+      {invites.map((i) => (
+        <li key={i.id} className="flex flex-wrap items-center gap-2">
+          <span className="text-ink-muted">{formatIst(new Date(i.createdAt))}</span>
+          <span>{i.sentToEmail ?? "link only"}</span>
+          {i.emailStatus === "failed" && <span className="text-danger">(email failed)</span>}
+          <span className="font-medium">{inviteStatus[i.status]}</span>
+          {i.status === "pending" && (
+            <CancelInviteButton action={cancelInviteAction.bind(null, clientId, i.id)} />
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }

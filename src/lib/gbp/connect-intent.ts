@@ -14,6 +14,8 @@ const intentSchema = z.object({
   clientId: z.uuid().nullable(),
   userId: z.string().min(1).nullable(),
   inviteId: z.uuid().optional(),
+  /** "test": admin checks the real Google sign-in and API access; nothing is saved. */
+  purpose: z.enum(["test"]).optional(),
   createdAt: z.number(),
 });
 

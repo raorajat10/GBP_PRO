@@ -5,6 +5,11 @@ import { getAgencyConnection } from "@/lib/gbp/service";
 import { serverEnv } from "@/lib/env";
 import { ListSkeleton } from "@/components/skeleton";
 import { GbpStatusBanner } from "@/components/gbp-status-banner";
+import {
+  googleOAuthConfig,
+  readTestResult,
+  type TestResult,
+} from "@/lib/gbp/google/test-connection";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -65,6 +70,70 @@ async function GoogleAccess({ status }: { status: string | string[] | undefined 
           {conn ? "Reconnect" : "Connect team Google account"}
         </a>
       </section>
+      <GoogleTest />
     </>
+  );
+}
+
+const OUTCOME: Record<TestResult["outcome"], { label: string; tone: string }> = {
+  approved: { label: "Working ✅", tone: "border-success bg-primary-soft" },
+  not_approved: {
+    label: "Signed in — waiting for Google's API approval",
+    tone: "border-accent bg-accent-soft",
+  },
+  api_disabled: { label: "Signed in — APIs not enabled yet", tone: "border-accent bg-accent-soft" },
+  no_permission: { label: "Google refused access", tone: "border-danger bg-surface" },
+  missing_scope: { label: "Permission not granted", tone: "border-danger bg-surface" },
+  cancelled: { label: "Cancelled", tone: "border-line bg-surface" },
+  error: { label: "Something went wrong", tone: "border-danger bg-surface" },
+};
+
+async function GoogleTest() {
+  const configured = Boolean(googleOAuthConfig());
+  const result = await readTestResult();
+  return (
+    <section
+      aria-labelledby="google-test-heading"
+      className="border-line bg-surface flex flex-col gap-3 rounded-2xl border p-5"
+    >
+      <h2 id="google-test-heading" className="text-lg font-semibold">
+        Real Google connection test
+      </h2>
+      <p className="text-ink-muted text-sm">
+        Signs in with Google&apos;s real &ldquo;Allow&rdquo; screen and asks Google for the business
+        profiles that account manages. It shows whether Google has approved our API access yet.
+        Nothing is saved; the rest of the app keeps using sample data until then. Use an account
+        listed as a test user in Google Cloud.
+      </p>
+      {result && (
+        <div
+          role="status"
+          className={`rounded-lg border p-3 text-sm ${OUTCOME[result.outcome].tone}`}
+        >
+          <p className="font-semibold">{OUTCOME[result.outcome].label}</p>
+          {result.email && <p>Signed in as {result.email}</p>}
+          <p className="text-ink-muted">{result.message}</p>
+          {result.locations && result.locations.length > 0 && (
+            <ul className="mt-1 list-disc pl-5">
+              {result.locations.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {configured ? (
+        <a
+          href="/api/google/test"
+          className="border-line hover:bg-paper w-fit rounded-lg border px-4 py-2"
+        >
+          {result ? "Test again" : "Test Google connection"}
+        </a>
+      ) : (
+        <p className="text-sm">
+          Add <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> to switch this on.
+        </p>
+      )}
+    </section>
   );
 }

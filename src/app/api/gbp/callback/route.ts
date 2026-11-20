@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { CONNECT_COOKIE, decodeIntent, isIntentValid } from "@/lib/gbp/connect-intent";
+import { runConnectionTest, saveTestResult } from "@/lib/gbp/google/test-connection";
 import { claimInvite, recordInviteConnection } from "@/lib/gbp/invites";
 import { getGbpProvider } from "@/lib/gbp/provider";
 import { canManageClient, linkLocation, saveConnection } from "@/lib/gbp/service";
@@ -63,6 +64,24 @@ export async function GET(request: NextRequest) {
   if (!isIntentValid(intent, searchParams.get("state"), user.id)) {
     return NextResponse.redirect(new URL("/dashboard?gbp=expired", origin));
   }
+  // ── Admin's "Test Google connection": real Google, nothing saved. ──
+  if (intent.purpose === "test") {
+    if (user.role !== "admin")
+      return NextResponse.redirect(new URL("/dashboard?gbp=forbidden", origin));
+    const code = searchParams.get("code");
+    const result =
+      searchParams.get("error") || !code
+        ? {
+            at: Date.now(),
+            outcome: "cancelled" as const,
+            email: null,
+            message: "Google sign-in was cancelled. Nothing was changed.",
+          }
+        : await runConnectionTest(code, origin);
+    await saveTestResult(result, origin.startsWith("https://"));
+    return NextResponse.redirect(new URL("/settings?gbp=tested", origin));
+  }
+
   const target = intent.mode === "agency" ? "/settings" : `/clients/${intent.clientId}`;
   const back = (status: string) =>
     NextResponse.redirect(new URL(`${target}?gbp=${status}`, origin));

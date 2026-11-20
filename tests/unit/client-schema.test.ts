@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { normalizeWhatsAppNumber, parseClientForm, toClientRow } from "@/lib/clients/schema";
+import {
+  normalizeWhatsAppNumber,
+  parseClientForm,
+  replyLinkSchema,
+  slugify,
+  slugSchema,
+  toClientRow,
+} from "@/lib/clients/schema";
 
 function form(fields: Record<string, string>) {
   const fd = new FormData();
@@ -117,5 +124,65 @@ describe("toClientRow (WhatsApp consent timestamp)", () => {
       toClientRow({ ...base, whatsappOptIn: false }, "2026-01-01T00:00:00Z", now)
         .whatsapp_opt_in_at,
     ).toBeNull();
+  });
+});
+
+describe("reply studio link (slug)", () => {
+  it.each([
+    ["Sarvatra Energy", "sarvatra-energy"],
+    ["  Raj's Battery & Inverter!! ", "raj-s-battery-inverter"],
+    ["SARVTRA", "sarvtra"],
+  ])("slugify(%j) → %s", (input, expected) => {
+    expect(slugify(input)).toBe(expected);
+  });
+
+  it("blank means 'generate it' (null), typed values are normalised", () => {
+    expect(slugSchema.parse("")).toBeNull();
+    expect(slugSchema.parse(" Sarvtra ")).toBe("sarvtra");
+  });
+
+  it.each(["!", "a", "शर्मा"])("rejects %j", (input) => {
+    expect(slugSchema.safeParse(input).success).toBe(false);
+  });
+
+  it("only sends a slug to the database when one was given", () => {
+    const blank = parseClientForm(form({ businessName: "Shop", slug: "" }));
+    const set = parseClientForm(form({ businessName: "Shop", slug: "my-shop" }));
+    expect(blank.success && "slug" in toClientRow(blank.data, null)).toBe(false);
+    expect(set.success && toClientRow(set.data, null).slug).toBe("my-shop");
+  });
+});
+
+describe("reply posting link", () => {
+  it.each([
+    "https://business.google.com/reviews",
+    "https://www.google.com/maps/place/Sarvatra+Energy/@26.9,75.8,17z",
+    "https://maps.app.goo.gl/AbC123xyz",
+    "https://g.page/r/CabcDEF/review",
+  ])("accepts %s", (link) => {
+    expect(replyLinkSchema.parse(` ${link} `)).toBe(link);
+  });
+
+  it("blank clears it", () => {
+    expect(replyLinkSchema.parse("")).toBeNull();
+  });
+
+  it.each([
+    "http://business.google.com/reviews",
+    "https://evil.com/?google.com",
+    "https://google.com.evil.com/",
+    "https://notgoogle.com/",
+    "javascript:alert(1)",
+  ])("rejects %s", (link) => {
+    expect(replyLinkSchema.safeParse(link).success).toBe(false);
+  });
+
+  it("is saved with the client", () => {
+    const parsed = parseClientForm(
+      form({ businessName: "Shop", replyLink: "https://maps.app.goo.gl/AbC123xyz" }),
+    );
+    expect(parsed.success && toClientRow(parsed.data, null).reply_link).toBe(
+      "https://maps.app.goo.gl/AbC123xyz",
+    );
   });
 });

@@ -6,8 +6,21 @@ import { createReplyDrafts } from "./actions";
 type Draft = { title: string; text: string };
 type Result = { error?: string; sample?: boolean; drafts?: Draft[] };
 
-export function ReplyForm() {
-  const [result, action, pending] = useActionState<Result, FormData>(createReplyDrafts, {});
+type DraftAction = (previous: Result, formData: FormData) => Promise<Result>;
+
+/**
+ * Shared by the team page (/reply-studio, any business name) and the public page
+ * (/reply-studio/<company>, business fixed by the link).
+ */
+export function ReplyForm({
+  action: draftAction = createReplyDrafts,
+  company,
+}: {
+  action?: DraftAction;
+  company?: { slug: string; name: string; replyUrl?: string | null };
+}) {
+  const replyUrl = company?.replyUrl ?? null;
+  const [result, action, pending] = useActionState<Result, FormData>(draftAction, {});
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState(false);
   const drafts = result.drafts ?? [];
@@ -35,18 +48,22 @@ export function ReplyForm() {
             className="border-line focus:border-primary focus:ring-primary/20 rounded-xl border bg-transparent p-3 font-normal outline-none focus:ring-2"
           />
         </label>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-semibold" htmlFor="business">
-            Business name
-            <input
-              id="business"
-              name="business"
-              required
-              maxLength={100}
-              placeholder="e.g. Sarvatra Energy"
-              className="border-line focus:border-primary focus:ring-primary/20 rounded-xl border bg-transparent px-3 py-2.5 font-normal outline-none focus:ring-2"
-            />
-          </label>
+        <div className={`grid gap-4 ${company ? "" : "sm:grid-cols-2"}`}>
+          {company ? (
+            <input type="hidden" name="company" value={company.slug} />
+          ) : (
+            <label className="grid gap-2 text-sm font-semibold" htmlFor="business">
+              Business name
+              <input
+                id="business"
+                name="business"
+                required
+                maxLength={100}
+                placeholder="e.g. Sarvatra Energy"
+                className="border-line focus:border-primary focus:ring-primary/20 rounded-xl border bg-transparent px-3 py-2.5 font-normal outline-none focus:ring-2"
+              />
+            </label>
+          )}
           <label className="grid gap-2 text-sm font-semibold" htmlFor="language">
             Reply language
             <select
@@ -128,14 +145,29 @@ export function ReplyForm() {
                 type="button"
                 onClick={async () => {
                   const field = document.getElementById("draft-text") as HTMLTextAreaElement | null;
-                  if (field) {
+                  if (!field) return;
+                  try {
                     await navigator.clipboard.writeText(field.value);
                     setCopied(true);
+                  } catch {
+                    field.select(); // clipboard blocked: leave it selected to copy by hand
+                  }
+                  // Then go to where the reply gets pasted (new tab, so the drafts stay here).
+                  if (replyUrl) {
+                    const tab = window.open(replyUrl, "_blank");
+                    if (tab) tab.opener = null;
+                    else window.location.href = replyUrl; // pop-up blocked
                   }
                 }}
                 className="bg-ink text-surface rounded-lg px-4 py-2 text-sm font-semibold"
               >
-                {copied ? "Copied" : "Copy reply"}
+                {copied
+                  ? replyUrl
+                    ? "Copied — paste it on Google"
+                    : "Copied"
+                  : replyUrl
+                    ? "Copy & open Google"
+                    : "Copy reply"}
               </button>
             </div>
           </>

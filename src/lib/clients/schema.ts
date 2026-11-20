@@ -47,6 +47,76 @@ export function normalizeWhatsAppNumber(input: string): string | null {
   return null;
 }
 
+/**
+ * Link name for the public reply studio (/reply-studio/<slug>): lowercase letters,
+ * numbers and single hyphens. "Sarvatra Energy" → "sarvatra-energy".
+ */
+export function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
+
+export const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+export const slugSchema = z
+  .string()
+  .trim()
+  .transform((v, ctx) => {
+    if (v === "") return null; // blank = generate from the business name (new clients only)
+    const s = slugify(v);
+    if (s.length < 2 || s.length > 60 || !SLUG_PATTERN.test(s)) {
+      ctx.addIssue({ code: "custom", message: "Use at least 2 letters or numbers, e.g. sarvtra." });
+      return z.NEVER;
+    }
+    return s;
+  });
+
+/** Google's official "write a review" link: the placeid form or the g.page short link. */
+export const GOOGLE_REVIEW_LINK_PATTERN =
+  /^https:\/\/(search\.google\.com\/local\/writereview\?placeid=[A-Za-z0-9_-]+|g\.page\/r\/[A-Za-z0-9_-]+(\/review)?)$/;
+
+export const googleReviewLinkSchema = z
+  .string()
+  .trim()
+  .transform((v, ctx) => {
+    if (v === "") return null;
+    if (!GOOGLE_REVIEW_LINK_PATTERN.test(v)) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          'Paste the link from Google\'s "Ask for reviews" button, e.g. https://g.page/r/…/review',
+      });
+      return z.NEVER;
+    }
+    return v;
+  });
+
+/**
+ * Where the owner pastes a reply copied from the reply studio: any https page on a
+ * Google address (Business Profile, Maps, g.page, maps.app.goo.gl). Matches the DB check.
+ */
+export const REPLY_LINK_PATTERN =
+  /^https:\/\/([a-z0-9-]+\.)*(google\.com|google\.co\.in|g\.page|goo\.gl)(\/\S*)?$/;
+
+export const replyLinkSchema = z
+  .string()
+  .trim()
+  .transform((v, ctx) => {
+    if (v === "") return null;
+    if (v.length > 500 || !REPLY_LINK_PATTERN.test(v)) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Paste a Google link (https://business.google.com/…, https://maps.app.goo.gl/… or https://g.page/…).",
+      });
+      return z.NEVER;
+    }
+    return v;
+  });
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -83,6 +153,9 @@ export const clientFormSchema = z
     brandNotes: optionalText(2000),
     assignedManagerId: z.uuid("Pick a manager from the list.").nullable(),
     status: z.enum(values(STATUSES)),
+    slug: slugSchema,
+    googleReviewLink: googleReviewLinkSchema,
+    replyLink: replyLinkSchema,
   })
   .refine((c) => !c.whatsappOptIn || c.ownerWhatsapp !== null, {
     path: ["whatsappOptIn"],
@@ -107,6 +180,9 @@ export function parseClientForm(fd: FormData) {
     brandNotes: text(fd, "brandNotes"),
     assignedManagerId: text(fd, "assignedManagerId") || null,
     status: text(fd, "status") || "active",
+    slug: text(fd, "slug"),
+    googleReviewLink: text(fd, "googleReviewLink"),
+    replyLink: text(fd, "replyLink"),
   });
 }
 
@@ -129,5 +205,8 @@ export function toClientRow(
     brand_notes: v.brandNotes,
     assigned_manager_id: v.assignedManagerId,
     status: v.status,
+    google_review_link: v.googleReviewLink,
+    reply_link: v.replyLink,
+    ...(v.slug ? { slug: v.slug } : {}),
   };
 }

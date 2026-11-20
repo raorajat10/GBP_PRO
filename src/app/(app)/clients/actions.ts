@@ -14,6 +14,15 @@ export interface FormState {
   fieldErrors?: Record<string, string[] | undefined>;
 }
 
+/** Postgres unique violation on clients.slug: the reply studio link name is taken. */
+const slugTaken = (error: { code?: string; message?: string } | null): FormState | null =>
+  error?.code === "23505" && error.message?.includes("slug")
+    ? {
+        message: "Please fix the highlighted fields.",
+        fieldErrors: { slug: ["Another client already uses this link. Pick a different one."] },
+      }
+    : null;
+
 const invalid = (error: z.ZodError): FormState => ({
   message: "Please fix the highlighted fields.",
   fieldErrors: z.flattenError(error).fieldErrors,
@@ -31,7 +40,8 @@ export async function createClientAction(_prev: FormState, fd: FormData): Promis
     .insert(toClientRow(parsed.data, null))
     .select("id")
     .single();
-  if (error || !data) return { message: "Couldn't save the client. Try again." };
+  if (error || !data)
+    return slugTaken(error) ?? { message: "Couldn't save the client. Try again." };
 
   redirect(`/clients/${data.id}`);
 }
@@ -56,14 +66,18 @@ export async function updateClientAction(
   if (!existing) return { message: "This client doesn't exist or isn't assigned to you." };
 
   const row = toClientRow(parsed.data, existing.whatsapp_opt_in_at);
-  if (user.role !== "admin") row.assigned_manager_id = existing.assigned_manager_id;
+  if (user.role !== "admin") {
+    row.assigned_manager_id = existing.assigned_manager_id;
+    delete row.slug; // only admins change the public reply studio link
+  }
 
   const { data, error } = await supabase
     .from("clients")
     .update(row)
     .eq("id", clientId)
     .select("id");
-  if (error || !data?.length) return { message: "Couldn't save changes. Try again." };
+  if (error || !data?.length)
+    return slugTaken(error) ?? { message: "Couldn't save changes. Try again." };
 
   refresh();
   return { ok: true, message: "Saved." };

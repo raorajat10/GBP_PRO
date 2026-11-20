@@ -15,6 +15,9 @@ export interface ClientDefaults {
   brand_notes: string | null;
   assigned_manager_id: string | null;
   status: string;
+  slug?: string;
+  google_review_link?: string | null;
+  reply_link?: string | null;
 }
 
 export interface ManagerOption {
@@ -101,6 +104,62 @@ export function ClientForm({
               </option>
             ))}
           </select>
+        </Field>
+        <Field
+          label="Reply studio link"
+          name="slug"
+          errors={e.slug}
+          hint={
+            !canAssign
+              ? "Only an admin can change this."
+              : defaults?.slug
+                ? `Public page: /reply-studio/${defaults.slug} — changing it breaks links already shared.`
+                : "Leave blank to make it from the business name. Public page: /reply-studio/<link>"
+          }
+        >
+          <input
+            id="slug"
+            name="slug"
+            maxLength={60}
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="e.g. sarvtra"
+            defaultValue={defaults?.slug ?? ""}
+            disabled={!canAssign}
+            className={inputClass}
+          />
+        </Field>
+        <Field
+          label="Google review link"
+          name="googleReviewLink"
+          errors={e.googleReviewLink}
+          hint={`Used by the public review page${defaults?.slug ? ` /review/${defaults.slug}` : ""}. In Google, open the profile → "Ask for reviews" → copy the link.`}
+        >
+          <input
+            id="googleReviewLink"
+            name="googleReviewLink"
+            type="url"
+            autoComplete="off"
+            placeholder="https://g.page/r/…/review"
+            defaultValue={defaults?.google_review_link ?? ""}
+            className={inputClass}
+          />
+        </Field>
+        <Field
+          label="Reply posting link"
+          name="replyLink"
+          errors={e.replyLink}
+          hint={`Where replies get pasted. When someone copies a reply on${defaults?.slug ? ` /reply-studio/${defaults.slug}` : " the reply studio"}, this opens next. Use the profile's Google reviews page (e.g. from business.google.com or Maps → Reviews).`}
+        >
+          <input
+            id="replyLink"
+            name="replyLink"
+            type="url"
+            autoComplete="off"
+            placeholder="https://business.google.com/…"
+            defaultValue={defaults?.reply_link ?? ""}
+            className={inputClass}
+          />
         </Field>
       </fieldset>
 

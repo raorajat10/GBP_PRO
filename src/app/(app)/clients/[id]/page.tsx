@@ -45,7 +45,7 @@ async function ClientDetail({
   const { data: client } = await supabase
     .from("clients")
     .select(
-      "id, business_name, owner_name, owner_whatsapp, whatsapp_opt_in_at, preferred_language, industry, brand_notes, assigned_manager_id, status",
+      "id, business_name, owner_name, owner_whatsapp, whatsapp_opt_in_at, preferred_language, industry, brand_notes, assigned_manager_id, status, slug, google_review_link, reply_link",
     )
     .eq("id", id)
     .maybeSingle();
@@ -60,9 +60,25 @@ async function ClientDetail({
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">{client.business_name}</h1>
         <StatusChip status={client.status} />
+        <a
+          href={`/reply-studio/${client.slug}`}
+          target="_blank"
+          rel="noopener"
+          className="border-line hover:border-primary ml-auto rounded-lg border px-3 py-1.5 text-sm font-medium"
+        >
+          Reply studio ↗
+        </a>
+        <a
+          href={`/review/${client.slug}`}
+          target="_blank"
+          rel="noopener"
+          className="border-line hover:border-primary rounded-lg border px-3 py-1.5 text-sm font-medium"
+        >
+          Review page ↗
+        </a>
         <Link
           href={`/clients/${client.id}/posts`}
-          className="border-line hover:border-primary ml-auto rounded-lg border px-3 py-1.5 text-sm font-medium"
+          className="border-line hover:border-primary rounded-lg border px-3 py-1.5 text-sm font-medium"
         >
           Posts →
         </Link>
@@ -78,6 +94,8 @@ async function ClientDetail({
         canAssign={isAdmin}
         submitLabel="Save changes"
       />
+
+      <PrivateFeedback clientId={client.id} />
 
       {isAdmin && <OwnerLogins clientId={client.id} />}
     </>
@@ -113,6 +131,53 @@ async function OwnerLogins({ clientId }: { clientId: string }) {
         <p className="text-ink-muted text-sm">No owner logins yet.</p>
       )}
       <OwnerInviteForm action={inviteOwnerAction.bind(null, clientId)} />
+    </section>
+  );
+}
+
+/** Private messages customers sent from the public review page (/review/<slug>). */
+async function PrivateFeedback({ clientId }: { clientId: string }) {
+  const supabase = await createSupabaseServerClient();
+  const { data: items } = await supabase
+    .from("review_feedback")
+    .select("id, rating, message, contact, created_at")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  return (
+    <section className="border-line bg-surface flex flex-col gap-3 rounded-2xl border p-5">
+      <div>
+        <h2 className="text-lg font-semibold">Private customer messages</h2>
+        <p className="text-ink-muted text-sm">
+          Sent from the public review page instead of (or as well as) a Google review. Only the team
+          sees these.
+        </p>
+      </div>
+      {items?.length ? (
+        <ul className="flex flex-col gap-3">
+          {items.map((f) => (
+            <li key={f.id} className="border-line rounded-xl border p-3 text-sm">
+              <div className="text-ink-muted flex flex-wrap gap-x-3 text-xs">
+                <span>
+                  {f.rating ? `${"★".repeat(f.rating)}${"☆".repeat(5 - f.rating)}` : "No rating"}
+                </span>
+                <span>
+                  {new Date(f.created_at).toLocaleString("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                    timeZone: "Asia/Kolkata",
+                  })}
+                </span>
+                {f.contact && <span>Contact: {f.contact}</span>}
+              </div>
+              <p className="mt-1 whitespace-pre-wrap">{f.message}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-ink-muted text-sm">No private messages yet.</p>
+      )}
     </section>
   );
 }

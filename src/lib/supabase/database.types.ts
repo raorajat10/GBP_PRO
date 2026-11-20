@@ -236,11 +236,14 @@ export type Database = {
           brand_notes: string | null;
           business_name: string;
           created_at: string;
+          google_review_link: string | null;
+          reply_link: string | null;
           id: string;
           industry: string | null;
           owner_name: string | null;
           owner_whatsapp: string | null;
           preferred_language: string;
+          slug: string;
           status: string;
           updated_at: string;
           whatsapp_opt_in_at: string | null;
@@ -251,11 +254,14 @@ export type Database = {
           brand_notes?: string | null;
           business_name: string;
           created_at?: string;
+          google_review_link?: string | null;
+          reply_link?: string | null;
           id?: string;
           industry?: string | null;
           owner_name?: string | null;
           owner_whatsapp?: string | null;
           preferred_language?: string;
+          slug?: string;
           status?: string;
           updated_at?: string;
           whatsapp_opt_in_at?: string | null;
@@ -265,11 +271,14 @@ export type Database = {
           brand_notes?: string | null;
           business_name?: string;
           created_at?: string;
+          google_review_link?: string | null;
+          reply_link?: string | null;
           id?: string;
           industry?: string | null;
           owner_name?: string | null;
           owner_whatsapp?: string | null;
           preferred_language?: string;
+          slug?: string;
           status?: string;
           updated_at?: string;
           whatsapp_opt_in_at?: string | null;
@@ -727,6 +736,41 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      review_feedback: {
+        Row: {
+          client_id: string;
+          contact: string | null;
+          created_at: string;
+          id: string;
+          message: string;
+          rating: number | null;
+        };
+        Insert: {
+          client_id: string;
+          contact?: string | null;
+          created_at?: string;
+          id?: string;
+          message: string;
+          rating?: number | null;
+        };
+        Update: {
+          client_id?: string;
+          contact?: string | null;
+          created_at?: string;
+          id?: string;
+          message?: string;
+          rating?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "review_feedback_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

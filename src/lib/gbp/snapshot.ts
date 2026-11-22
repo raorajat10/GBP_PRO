@@ -18,6 +18,8 @@ export interface LocationSnapshot {
     hasLogo: boolean;
     hasCover: boolean;
     latest: string | null;
+    /** Photo count per Google category. Missing on snapshots taken before it existed. */
+    byCategory?: Partial<Record<GbpMedia["category"], number>>;
   };
   posts: { total: number; last7Days: number; last30Days: number; latest: string | null };
   reviews: {
@@ -96,6 +98,10 @@ export function summarizeLocation(input: {
       hasLogo: media.some((m) => m.category === "LOGO"),
       hasCover: media.some((m) => m.category === "COVER"),
       latest: latestOf(media.map((m) => m.createTime)),
+      byCategory: media.reduce<Record<string, number>>((acc, m) => {
+        acc[m.category] = (acc[m.category] ?? 0) + 1;
+        return acc;
+      }, {}),
     },
     posts: {
       total: livePosts.length,
@@ -140,6 +146,48 @@ export function summarizeLocation(input: {
   };
 }
 
+/** Days of daily metrics kept for the owner's analytics (the snapshot summarises the last 28). */
+export const METRIC_HISTORY_DAYS = 90;
+const SNAPSHOT_METRIC_DAYS = 28;
+
+export interface CollectedProfile {
+  snapshot: LocationSnapshot;
+  /** Every review, for the reviews table. */
+  reviews: GbpReview[];
+  /** Up to METRIC_HISTORY_DAYS of daily numbers, for the metrics table. */
+  metrics: DailyMetrics[];
+}
+
+/** Fetch everything for one location: the snapshot plus the raw reviews and daily metrics. */
+export async function collectProfile(
+  provider: GbpProvider,
+  creds: GbpCredentials,
+  locationName: string,
+  now: Date = new Date(),
+): Promise<CollectedProfile> {
+  const day = (n: number) => new Date(now.getTime() - n * DAY).toISOString().slice(0, 10);
+  const [profile, media, posts, reviews, metrics] = await Promise.all([
+    provider.getLocation(creds, locationName),
+    provider.listMedia(creds, locationName),
+    provider.listLocalPosts(creds, locationName),
+    provider.listReviews(creds, locationName),
+    provider.getDailyMetrics(creds, locationName, {
+      start: day(METRIC_HISTORY_DAYS),
+      end: day(1),
+    }),
+  ]);
+  const recentFrom = day(SNAPSHOT_METRIC_DAYS);
+  const snapshot = summarizeLocation({
+    profile,
+    media,
+    posts,
+    reviews,
+    metrics: metrics.filter((m) => m.date >= recentFrom),
+    now,
+  });
+  return { snapshot, reviews, metrics };
+}
+
 /** Fetch everything for one location and summarise it. Last 28 days of metrics. */
 export async function collectSnapshot(
   provider: GbpProvider,
@@ -147,14 +195,5 @@ export async function collectSnapshot(
   locationName: string,
   now: Date = new Date(),
 ): Promise<LocationSnapshot> {
-  const end = new Date(now.getTime() - DAY).toISOString().slice(0, 10);
-  const start = new Date(now.getTime() - 28 * DAY).toISOString().slice(0, 10);
-  const [profile, media, posts, reviews, metrics] = await Promise.all([
-    provider.getLocation(creds, locationName),
-    provider.listMedia(creds, locationName),
-    provider.listLocalPosts(creds, locationName),
-    provider.listReviews(creds, locationName),
-    provider.getDailyMetrics(creds, locationName, { start, end }),
-  ]);
-  return summarizeLocation({ profile, media, posts, reviews, metrics, now });
+  return (await collectProfile(provider, creds, locationName, now)).snapshot;
 }

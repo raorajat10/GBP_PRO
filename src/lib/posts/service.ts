@@ -67,6 +67,42 @@ async function photoForAi(storagePath: string): Promise<PostDraftRequest["photo"
   };
 }
 
+/**
+ * Check, re-encode and save one photo for a client (private bucket + media_assets row).
+ * Throws PhotoError for a bad photo, PostError if saving fails. Caller checks access.
+ */
+export async function storeClientPhoto(input: {
+  clientId: string;
+  userId: string;
+  photo: Buffer;
+}): Promise<{ mediaId: string; storagePath: string; jpeg: Buffer }> {
+  const admin = createSupabaseAdminClient();
+  const processed = await processPhoto(input.photo);
+  const path = `${input.clientId}/${crypto.randomUUID()}.jpg`;
+  const { error: upErr } = await admin.storage
+    .from(BUCKET)
+    .upload(path, processed.jpeg, { contentType: "image/jpeg", upsert: false });
+  if (upErr) throw new PostError("Couldn't save the photo. Try again.");
+  const { data: media, error: mErr } = await admin
+    .from("media_assets")
+    .insert({
+      client_id: input.clientId,
+      storage_path: path,
+      mime: "image/jpeg",
+      width: processed.width,
+      height: processed.height,
+      bytes: processed.bytes,
+      uploaded_by: input.userId,
+    })
+    .select("id")
+    .single();
+  if (mErr || !media) {
+    await admin.storage.from(BUCKET).remove([path]);
+    throw new PostError("Couldn't save the photo. Try again.");
+  }
+  return { mediaId: media.id, storagePath: path, jpeg: processed.jpeg };
+}
+
 /** Save the photo, ask the writer for drafts, and create a draft post. */
 export async function createPostWithDrafts(input: {
   clientId: string;
@@ -82,31 +118,13 @@ export async function createPostWithDrafts(input: {
   let mediaId: string | null = null;
   let photo: PostDraftRequest["photo"] = null;
   if (input.photo) {
-    const processed = await processPhoto(input.photo);
-    const path = `${input.clientId}/${crypto.randomUUID()}.jpg`;
-    const { error: upErr } = await admin.storage
-      .from(BUCKET)
-      .upload(path, processed.jpeg, { contentType: "image/jpeg", upsert: false });
-    if (upErr) throw new PostError("Couldn't save the photo. Try again.");
-    const { data: media, error: mErr } = await admin
-      .from("media_assets")
-      .insert({
-        client_id: input.clientId,
-        storage_path: path,
-        mime: "image/jpeg",
-        width: processed.width,
-        height: processed.height,
-        bytes: processed.bytes,
-        uploaded_by: input.userId,
-      })
-      .select("id")
-      .single();
-    if (mErr || !media) {
-      await admin.storage.from(BUCKET).remove([path]);
-      throw new PostError("Couldn't save the photo. Try again.");
-    }
-    mediaId = media.id;
-    photo = { base64: processed.jpeg.toString("base64"), mediaType: "image/jpeg" };
+    const stored = await storeClientPhoto({
+      clientId: input.clientId,
+      userId: input.userId,
+      photo: input.photo,
+    });
+    mediaId = stored.mediaId;
+    photo = { base64: stored.jpeg.toString("base64"), mediaType: "image/jpeg" };
   }
 
   const removePhoto = async () => {

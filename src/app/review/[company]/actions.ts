@@ -4,6 +4,7 @@ import { z } from "zod";
 import { polishCustomerReview, type ReviewLanguage } from "@/lib/ai/review-polish";
 import { AiError } from "@/lib/ai/writer";
 import { getPublicClient } from "@/lib/clients/public";
+import { notifyClient } from "@/lib/notifications/service";
 import { allowPublicRequest } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -86,5 +87,13 @@ export async function sendPrivateFeedbackAction(input: {
     message: parsed.data.message,
     contact: parsed.data.contact,
   });
-  return error ? { error: "Couldn't send your message. Please try again." } : { ok: true };
+  if (error) return { error: "Couldn't send your message. Please try again." };
+  await notifyClient({
+    clientId: client.id,
+    kind: "feedback",
+    title: "New private feedback from a customer",
+    body: parsed.data.message.slice(0, 160),
+    link: "/home/reviews/feedback",
+  });
+  return { ok: true };
 }

@@ -13,6 +13,7 @@ import { OwnerInviteForm } from "../owner-invite-form";
 import { inviteOwnerAction, updateClientAction } from "../actions";
 import { GbpStatusBanner } from "@/components/gbp-status-banner";
 import { GoogleProfileSection } from "./google-profile";
+import { OwnerRequests } from "./owner-requests";
 
 export const metadata: Metadata = { title: "Client" };
 
@@ -86,6 +87,7 @@ async function ClientDetail({
 
       <GbpStatusBanner status={gbpStatus} />
       <GoogleProfileSection clientId={client.id} isAdmin={isAdmin} />
+      <OwnerRequests clientId={client.id} />
 
       <ClientForm
         action={updateClientAction.bind(null, client.id)}

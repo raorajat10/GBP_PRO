@@ -5,7 +5,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { getGbpProvider } from "./provider";
-import { collectSnapshot } from "./snapshot";
+import { saveProfileHistory } from "./history";
+import { collectProfile } from "./snapshot";
 import { GbpError, type ConnectMode, type GbpCredentials, type GbpProviderKind } from "./types";
 
 /**
@@ -158,7 +159,11 @@ export async function linkLocation(input: {
 
   const provider = getGbpProvider(conn.provider as GbpProviderKind);
   // Reading the profile through the connection also proves the account can manage it.
-  const snapshot = await collectSnapshot(provider, credsOf(conn), input.locationName);
+  const { snapshot, reviews, metrics } = await collectProfile(
+    provider,
+    credsOf(conn),
+    input.locationName,
+  );
   const p = snapshot.profile;
 
   const { data, error } = await admin
@@ -183,6 +188,13 @@ export async function linkLocation(input: {
     throw new GbpError("This Google profile is already linked to a client.", "unknown");
   }
   if (error || !data) throw new GbpError("Couldn't link the profile. Try again.");
+  await historyQuietly({
+    locationId: data.id,
+    clientId: input.clientId,
+    reviews,
+    metrics,
+    notifyNewReviews: false,
+  });
   await auditQuietly({
     locationId: data.id,
     clientId: input.clientId,
@@ -203,7 +215,7 @@ export async function syncLocation(locationId: string, userId?: string | null): 
   if (!loc?.connection) throw new GbpError("Linked profile not found.", "not_found");
   const conn = loc.connection as ConnectionRow;
 
-  const snapshot = await collectSnapshot(
+  const { snapshot, reviews, metrics } = await collectProfile(
     getGbpProvider(conn.provider as GbpProviderKind),
     credsOf(conn),
     loc.gbp_location_name,
@@ -223,7 +235,23 @@ export async function syncLocation(locationId: string, userId?: string | null): 
     })
     .eq("id", locationId);
   if (error) throw new GbpError("Couldn't save the refreshed profile.");
+  await historyQuietly({
+    locationId,
+    clientId: loc.client_id,
+    reviews,
+    metrics,
+    notifyNewReviews: true,
+  });
   await auditQuietly({ locationId, clientId: loc.client_id, snapshot, userId });
+}
+
+/** Reviews and daily numbers are extras on top of the saved snapshot: log failures, don't show them. */
+async function historyQuietly(input: Parameters<typeof saveProfileHistory>[0]) {
+  try {
+    await saveProfileHistory(input);
+  } catch (e) {
+    console.error("Saving review/metric history failed", e);
+  }
 }
 
 /** Re-score after every link/sync. The profile data is already saved, so an audit failure is logged, not shown. */

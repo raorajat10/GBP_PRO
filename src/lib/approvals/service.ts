@@ -10,6 +10,7 @@ import {
 } from "@/lib/messaging/types";
 import { postIssues } from "@/lib/posts/rules";
 import type { Json } from "@/lib/supabase/database.types";
+import { notifyClient } from "@/lib/notifications/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   APPROVAL_EXPIRY_HOURS,
@@ -114,6 +115,17 @@ export async function sendPostForApproval(input: {
       throw new ApprovalError("This post is already waiting for approval.");
     throw new ApprovalError("Couldn't send the post for approval. Try again.");
   }
+
+  // The approval link itself carries the token, so it is never stored in notifications.
+  await notifyClient({
+    clientId: client.id,
+    kind: "approval",
+    title: "A post is waiting for your approval",
+    body: viaWhatsApp
+      ? "Open the WhatsApp message from our team to approve it or ask for changes."
+      : "Open the approval link our team sent you to approve it or ask for changes.",
+    link: "/home/grow/posts",
+  });
 
   let whatsappError: string | null = null;
   if (viaWhatsApp) {

@@ -18,6 +18,14 @@
   --accent-soft: #fdf1df;
   --danger: #b4372b;
   --success: #2f7d3b;
+  /* Owner portal sidebar */
+  --rail: #0e3a33;
+  --rail-ink: #eef6f3;
+  --rail-muted: #a9c6be;
+  --rail-active: #185247;
+  /* Chart series (validated: lightness, chroma, colour-blind separation, contrast) */
+  --series-1: #00806a;
+  --series-2: #c46a12;
 }
 
 /* Dark: follows the device unless the theme switch (data-theme on <html>) says otherwise. */
@@ -36,6 +44,12 @@
     --accent-soft: #3a2c16;
     --danger: #ef7a6e;
     --success: #6cc47a;
+    --rail: #0c1317;
+    --rail-ink: #e8eef1;
+    --rail-muted: #93a3ab;
+    --rail-active: #1b282f;
+    --series-1: #24967f;
+    --series-2: #c97f22;
   }
 }
 
@@ -53,6 +67,12 @@
   --accent-soft: #3a2c16;
   --danger: #ef7a6e;
   --success: #6cc47a;
+  --rail: #0c1317;
+  --rail-ink: #e8eef1;
+  --rail-muted: #93a3ab;
+  --rail-active: #1b282f;
+  --series-1: #24967f;
+  --series-2: #c97f22;
 }
 
 @theme inline {
@@ -68,6 +88,12 @@
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-rail: var(--rail);
+  --color-rail-ink: var(--rail-ink);
+  --color-rail-muted: var(--rail-muted);
+  --color-rail-active: var(--rail-active);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
   --font-sans: var(--font-mukta), system-ui, sans-serif;
 }
 

@@ -712,6 +712,8 @@ export type Database = {
           email: string;
           full_name: string | null;
           id: string;
+          notify_email: boolean;
+          notify_whatsapp: boolean;
           phone: string | null;
           role: Database["public"]["Enums"]["app_role"] | null;
           updated_at: string;
@@ -722,6 +724,8 @@ export type Database = {
           email: string;
           full_name?: string | null;
           id: string;
+          notify_email?: boolean;
+          notify_whatsapp?: boolean;
           phone?: string | null;
           role?: Database["public"]["Enums"]["app_role"] | null;
           updated_at?: string;
@@ -731,6 +735,8 @@ export type Database = {
           email?: string;
           full_name?: string | null;
           id?: string;
+          notify_email?: boolean;
+          notify_whatsapp?: boolean;
           phone?: string | null;
           role?: Database["public"]["Enums"]["app_role"] | null;
           updated_at?: string;
@@ -745,7 +751,9 @@ export type Database = {
           id: string;
           message: string;
           rating: number | null;
+          status: string;
         };
+        ComputedFields: never;
         Insert: {
           client_id: string;
           contact?: string | null;
@@ -753,6 +761,7 @@ export type Database = {
           id?: string;
           message: string;
           rating?: number | null;
+          status?: string;
         };
         Update: {
           client_id?: string;
@@ -761,6 +770,7 @@ export type Database = {
           id?: string;
           message?: string;
           rating?: number | null;
+          status?: string;
         };
         Relationships: [
           {
@@ -768,6 +778,348 @@ export type Database = {
             columns: ["client_id"];
             isOneToOne: false;
             referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      card_events: {
+        Row: {
+          client_id: string;
+          created_at: string;
+          id: number;
+          kind: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          created_at?: string;
+          id?: never;
+          kind: string;
+        };
+        Update: {
+          client_id?: string;
+          created_at?: string;
+          id?: never;
+          kind?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "card_events_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_requests: {
+        Row: {
+          area: string;
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          message: string;
+          resolved_at: string | null;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          area: string;
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          message: string;
+          resolved_at?: string | null;
+          status?: string;
+        };
+        Update: {
+          area?: string;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          message?: string;
+          resolved_at?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      location_metrics_daily: {
+        Row: {
+          calls: number;
+          client_id: string;
+          day: string;
+          direction_requests: number;
+          impressions_maps: number;
+          impressions_search: number;
+          location_id: string;
+          website_clicks: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          calls?: number;
+          client_id: string;
+          day: string;
+          direction_requests?: number;
+          impressions_maps?: number;
+          impressions_search?: number;
+          location_id: string;
+          website_clicks?: number;
+        };
+        Update: {
+          calls?: number;
+          client_id?: string;
+          day?: string;
+          direction_requests?: number;
+          impressions_maps?: number;
+          impressions_search?: number;
+          location_id?: string;
+          website_clicks?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "location_metrics_daily_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "location_metrics_daily_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          body: string;
+          client_id: string;
+          created_at: string;
+          id: string;
+          kind: string;
+          link: string | null;
+          read_at: string | null;
+          title: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string;
+          client_id: string;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          link?: string | null;
+          read_at?: string | null;
+          title: string;
+        };
+        Update: {
+          body?: string;
+          client_id?: string;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          link?: string | null;
+          read_at?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      post_bank_items: {
+        Row: {
+          caption: string;
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          media_asset_id: string;
+          status: string;
+          wanted_on: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          caption?: string;
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          media_asset_id: string;
+          status?: string;
+          wanted_on?: string | null;
+        };
+        Update: {
+          caption?: string;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          media_asset_id?: string;
+          status?: string;
+          wanted_on?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "post_bank_items_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "post_bank_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "post_bank_items_media_asset_id_fkey";
+            columns: ["media_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "media_assets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reviews: {
+        Row: {
+          client_id: string;
+          comment: string | null;
+          gbp_review_name: string;
+          id: string;
+          location_id: string;
+          replied_at: string | null;
+          reply_comment: string | null;
+          reviewed_at: string;
+          reviewer: string;
+          star_rating: number;
+          synced_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          comment?: string | null;
+          gbp_review_name: string;
+          id?: string;
+          location_id: string;
+          replied_at?: string | null;
+          reply_comment?: string | null;
+          reviewed_at: string;
+          reviewer: string;
+          star_rating: number;
+          synced_at?: string;
+        };
+        Update: {
+          client_id?: string;
+          comment?: string | null;
+          gbp_review_name?: string;
+          id?: string;
+          location_id?: string;
+          replied_at?: string | null;
+          reply_comment?: string | null;
+          reviewed_at?: string;
+          reviewer?: string;
+          star_rating?: number;
+          synced_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reviews_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_tickets: {
+        Row: {
+          category: string;
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          description: string;
+          id: string;
+          priority: string;
+          status: string;
+          subject: string;
+          team_reply: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          description: string;
+          id?: string;
+          priority?: string;
+          status?: string;
+          subject: string;
+          team_reply?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          category?: string;
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string;
+          id?: string;
+          priority?: string;
+          status?: string;
+          subject?: string;
+          team_reply?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];

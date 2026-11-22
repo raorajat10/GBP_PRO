@@ -5,6 +5,7 @@ import { getAgencyConnection } from "@/lib/gbp/service";
 import { serverEnv } from "@/lib/env";
 import { ListSkeleton } from "@/components/skeleton";
 import { GbpStatusBanner } from "@/components/gbp-status-banner";
+import { GridRankingUsage } from "./grid-ranking-usage";
 import {
   googleOAuthConfig,
   readTestResult,
@@ -21,6 +22,9 @@ export default function SettingsPage({ searchParams }: PageProps<"/settings">) {
         {searchParams.then((sp) => (
           <GoogleAccess status={sp.gbp} />
         ))}
+      </Suspense>
+      <Suspense fallback={<ListSkeleton rows={1} />}>
+        <GridRankingUsage />
       </Suspense>
     </>
   );

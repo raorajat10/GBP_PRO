@@ -46,6 +46,12 @@ const serverEnvSchema = z.object({
   // Places API (New) in Google Cloud.
   RANK_PROVIDER: z.enum(["mock", "google"]).default("mock"),
   GOOGLE_PLACES_API_KEY: z.string().min(20).optional(),
+  // Google's FREE Text Search Pro requests per month for our billing account: 5000 by
+  // default, 35000 for India-priced accounts. We stop at 90% of this so scans stay free.
+  RANK_FREE_SEARCHES_PER_MONTH: z.coerce.number().int().min(0).max(1_000_000).default(5000),
+  // Grid points each business may scan per month (a 5×5 scan uses 25). Per-client values in
+  // clients.rank_points_per_month can only lower this.
+  RANK_POINTS_PER_CLIENT_MONTH: z.coerce.number().int().min(0).max(10_000).default(100),
 
   // Scheduled jobs (Vercel Cron sends "Authorization: Bearer $CRON_SECRET")
   CRON_SECRET: z.string().min(16).optional(),

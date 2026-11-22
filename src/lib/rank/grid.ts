@@ -170,6 +170,40 @@ export function monthStartIst(now: Date): string {
   return new Date(`${ym}-01T00:00:00+05:30`).toISOString();
 }
 
+/**
+ * Google's free monthly allowance resets at midnight US Pacific time on the 1st, so the
+ * service-wide cap counts from then (ISO timestamp).
+ */
+export function monthStartPacific(now: Date): string {
+  const ym = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+  }).format(now);
+  // Midnight Pacific is 08:00 UTC in winter (PST) and 07:00 UTC in summer (PDT).
+  for (const utcHour of ["08", "07"]) {
+    const t = new Date(`${ym}-01T${utcHour}:00:00Z`);
+    const hour = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      hour: "2-digit",
+      hourCycle: "h23",
+    }).format(t);
+    if (hour === "00") return t.toISOString();
+  }
+  return new Date(`${ym}-01T08:00:00Z`).toISOString();
+}
+
+/**
+ * Searches we allow ourselves per month: 90% of Google's free amount, so retries, failed
+ * scans and clock differences can never push the bill above zero.
+ */
+export function safeMonthlySearches(freePerMonth: number): number {
+  return Math.floor(freePerMonth * 0.9);
+}
+
+/** How many scans of a given grid size fit in a number of grid points. */
+export const scansThatFit = (points: number, size: number) => Math.floor(points / (size * size));
+
 /** Tailwind classes for a rank cell: green for the map pack, amber mid-page, red low or absent. */
 export function rankTone(rank: number | null): "top" | "mid" | "low" | "none" {
   if (rank == null) return "none";

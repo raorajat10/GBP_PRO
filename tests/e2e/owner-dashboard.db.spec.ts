@@ -596,7 +596,7 @@ test("grid ranking: track a keyword, scan it, see competitors", async ({ page })
   await add.getByLabel("Distance from you").selectOption("2");
   await add.getByRole("button", { name: "Track keyword" }).click();
   await expect(page.getByRole("heading", { name: "“solar company in jaipur”" })).toBeVisible();
-  await expect(page.getByText("Uses 9 of your 250 grid points left this month.")).toBeVisible();
+  await expect(page.getByText("Uses 9 of your 100 grid points left this month.")).toBeVisible();
 
   await page.getByRole("button", { name: "Scan now" }).click();
   await expect(page).toHaveURL(/scan=/);
@@ -604,7 +604,7 @@ test("grid ranking: track a keyword, scan it, see competitors", async ({ page })
   await expect(grid.getByRole("gridcell")).toHaveCount(9);
   await expect(page.getByText("Sample data")).toBeVisible();
   await expect(page.getByRole("region", { name: "Scan results" })).toContainText("Visibility");
-  await expect(page.getByText("9 / 250")).toBeVisible();
+  await expect(page.getByText("9 / 100 used")).toBeVisible();
   // Picking a corner shows who ranks there.
   await grid.getByRole("gridcell", { name: /^north-west:/ }).click();
   await expect(page.getByText(/^Searching from north-west/)).toBeVisible();

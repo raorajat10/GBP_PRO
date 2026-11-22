@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
 import { getOwnerContext } from "@/lib/owner/context";
-import type { PlaceResult } from "@/lib/rank/grid";
-import { scanAllowance, selfPlaceId } from "@/lib/rank/service";
+import { scansThatFit, type PlaceResult } from "@/lib/rank/grid";
+import { freeTierUsage, scanAllowance, selfPlaceId } from "@/lib/rank/service";
+import { serverEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
 import { Empty, Figure, fmtDateTime, NoBusiness, NoProfile, PageHeader, Panel, Pill } from "@/components/owner/ui";
@@ -48,13 +49,20 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
   ]);
   const kws = keywords ?? [];
   const kw = kws.find((k) => k.id === keywordId) ?? kws[0] ?? null;
+  // With real Google searches, the service-wide free allowance can run out before yours.
+  const freeTier = serverEnv().RANK_PROVIDER === "google" ? await freeTierUsage() : null;
+  const left = Math.min(allowance.left, freeTier?.left ?? Infinity);
+  const size = kw?.grid_size ?? 5;
 
   const meter = (
     <div className="flex flex-col gap-1.5">
-      <div className="flex justify-between text-sm">
-        <span>Grid points used this month</span>
+      <div className="flex flex-wrap justify-between gap-2 text-sm">
+        <span>
+          Free scans this month: <span className="font-semibold">{scansThatFit(allowance.limit, 5)} of 5 × 5</span>{" "}
+          <span className="text-ink-muted">({allowance.limit} grid points)</span>
+        </span>
         <span className="font-semibold tabular-nums">
-          {allowance.used} / {allowance.limit}
+          {allowance.used} / {allowance.limit} used
         </span>
       </div>
       <div className="bg-paper h-2 overflow-hidden rounded-full">
@@ -63,6 +71,13 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
           style={{ width: `${allowance.limit ? Math.min(100, (allowance.used / allowance.limit) * 100) : 100}%` }}
         />
       </div>
+      <p className="text-ink-muted text-xs">
+        {left >= size * size
+          ? `${scansThatFit(left, size)} more ${size} × ${size} ${scansThatFit(left, size) === 1 ? "scan" : "scans"} left this month. Resets on the 1st.`
+          : freeTier && freeTier.left < allowance.left
+            ? "This month's free Google searches are used up for everyone. Scans start again on the 1st."
+            : "You've used this month's scans. They reset on the 1st."}
+      </p>
     </div>
   );
 
@@ -127,7 +142,7 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
           </form>
         }
       >
-        <ScanNowButton keywordId={kw.id} points={kw.grid_size * kw.grid_size} left={allowance.left} />
+        <ScanNowButton keywordId={kw.id} points={kw.grid_size * kw.grid_size} left={left} />
         {lastFailed && (
           <p role="alert" className="text-danger text-sm">
             The last scan failed: {lastFailed.error ?? "unknown error"}

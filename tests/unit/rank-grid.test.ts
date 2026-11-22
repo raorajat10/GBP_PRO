@@ -4,6 +4,9 @@ import {
   competitorsFrom,
   gridPoints,
   monthStartIst,
+  monthStartPacific,
+  safeMonthlySearches,
+  scansThatFit,
   rankTone,
   summarizeScan,
 } from "@/lib/rank/grid";
@@ -104,6 +107,28 @@ describe("competitorsFrom", () => {
       "ME",
     );
     expect(rows[0].keywords).toEqual(["solar", "inverter"]);
+  });
+});
+
+describe("free-tier limits", () => {
+  it("counts Google's month from midnight US Pacific, winter and summer", () => {
+    expect(monthStartPacific(new Date("2026-12-15T00:00:00Z"))).toBe("2026-12-01T08:00:00.000Z");
+    expect(monthStartPacific(new Date("2026-07-15T00:00:00Z"))).toBe("2026-07-01T07:00:00.000Z");
+    // 1 Dec 05:00 UTC is still 30 Nov in California.
+    expect(monthStartPacific(new Date("2026-12-01T05:00:00Z"))).toBe("2026-11-01T07:00:00.000Z");
+  });
+
+  it("stays 10% under Google's free amount", () => {
+    expect(safeMonthlySearches(5000)).toBe(4500);
+    expect(safeMonthlySearches(35000)).toBe(31500);
+    expect(safeMonthlySearches(0)).toBe(0);
+  });
+
+  it("turns grid points into whole scans", () => {
+    expect(scansThatFit(100, 5)).toBe(4);
+    expect(scansThatFit(100, 7)).toBe(2);
+    expect(scansThatFit(4500, 5)).toBe(180);
+    expect(scansThatFit(20, 5)).toBe(0);
   });
 });
 

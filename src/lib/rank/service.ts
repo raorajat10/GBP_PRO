@@ -6,11 +6,14 @@ import {
   gridPoints,
   MAX_RANK,
   monthStartIst,
+  monthStartPacific,
+  safeMonthlySearches,
   summarizeScan,
   type GridSize,
   type LatLng,
   type PlaceResult,
 } from "./grid";
+import { serverEnv } from "@/lib/env";
 import { getRankProvider, RankError, sampleRank } from "./provider";
 
 /**
@@ -92,8 +95,29 @@ export async function scanAllowance(clientId: string, now = new Date()) {
       .gte("created_at", monthStartIst(now)),
   ]);
   const used = (scans ?? []).reduce((t, s) => t + s.points, 0);
-  const limit = client?.rank_points_per_month ?? 0;
+  // The service-wide setting is the ceiling; a client's own value can only lower it.
+  const limit = Math.min(
+    client?.rank_points_per_month ?? 0,
+    serverEnv().RANK_POINTS_PER_CLIENT_MONTH,
+  );
   return { used, limit, left: Math.max(0, limit - used) };
+}
+
+/**
+ * Google searches used by everyone this month (Google's free allowance is per billing
+ * account and resets at midnight US Pacific on the 1st). Failed scans count too, because
+ * Google may already have served some of their searches.
+ */
+export async function freeTierUsage(now = new Date()) {
+  const { data } = await createSupabaseAdminClient()
+    .from("rank_scans")
+    .select("points")
+    .eq("provider", "google")
+    .gte("created_at", monthStartPacific(now));
+  const used = (data ?? []).reduce((t, s) => t + s.points, 0);
+  const free = serverEnv().RANK_FREE_SEARCHES_PER_MONTH;
+  const cap = safeMonthlySearches(free);
+  return { used, cap, free, left: Math.max(0, cap - used) };
 }
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
@@ -147,7 +171,28 @@ export async function runScan(input: {
   }
 
   const provider = getRankProvider();
-  const center = await provider.locate({ placeId: loc.place_id, title: loc.title });
+  if (provider.kind === "google") {
+    const usage = await freeTierUsage();
+    if (usage.left < points) {
+      throw new RankError(
+        "This month's free Google searches are used up. Scans start again on the 1st.",
+        "quota",
+      );
+    }
+  }
+  // The business doesn't move: reuse its position from an earlier scan, so the paid
+  // location lookup happens once per business instead of once per scan.
+  const { data: earlier } = await admin
+    .from("rank_scans")
+    .select("center_lat, center_lng")
+    .eq("location_id", loc.id)
+    .eq("provider", provider.kind)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const center: LatLng = earlier
+    ? { lat: earlier.center_lat, lng: earlier.center_lng }
+    : await provider.locate({ placeId: loc.place_id, title: loc.title });
   const { data: scan, error: scanErr } = await admin
     .from("rank_scans")
     .insert({

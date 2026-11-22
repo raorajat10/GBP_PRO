@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { serverEnv } from "@/lib/env";
 import { getOwnerContext } from "@/lib/owner/context";
 import { cardPageUrl } from "@/lib/owner/links";
+import { isoDaysAgo } from "@/lib/owner/analytics";
 import { qrPngDataUrl, qrSvg } from "@/lib/owner/qr";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
@@ -46,7 +47,7 @@ async function CardInfo() {
   }
   const url = cardPageUrl(serverEnv().APP_URL, business.slug);
   const supabase = await createSupabaseServerClient();
-  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const since = isoDaysAgo(30);
   const [svg, png, events] = await Promise.all([
     qrSvg(url, "#1b2430"),
     qrPngDataUrl(url),

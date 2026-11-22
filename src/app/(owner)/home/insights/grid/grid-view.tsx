@@ -112,7 +112,7 @@ export function GridView({
           <p className="text-ink-muted mt-2 text-sm">No results were returned here.</p>
         )}
         {chosen?.rank && chosen.rank > 10 && (
-          <p className="text-ink-muted mt-2 text-sm">Showing the top 10. You're further down at #{chosen.rank}.</p>
+          <p className="text-ink-muted mt-2 text-sm">Showing the top 10. You&apos;re further down at #{chosen.rank}.</p>
         )}
       </div>
     </div>

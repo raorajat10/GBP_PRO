@@ -85,3 +85,8 @@ export function change(now: number, before: number | null | undefined): number |
   if (before == null || before === 0) return null;
   return Math.round(((now - before) / before) * 100);
 }
+
+/** ISO timestamp for N days before now (kept out of components so render stays pure). */
+export function isoDaysAgo(days: number, now: Date = new Date()): string {
+  return new Date(now.getTime() - days * 86_400_000).toISOString();
+}

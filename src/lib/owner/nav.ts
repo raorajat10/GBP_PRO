@@ -34,6 +34,8 @@ export const OWNER_NAV: NavGroup[] = [
     links: [
       { href: "/home/insights/score", label: "Profile score" },
       { href: "/home/insights/analytics", label: "Analytics" },
+      { href: "/home/insights/grid", label: "Grid ranking" },
+      { href: "/home/insights/competitors", label: "Competitors" },
       { href: "/home/insights/reports", label: "Monthly reports" },
     ],
   },

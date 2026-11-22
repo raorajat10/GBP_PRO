@@ -41,6 +41,12 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(3).optional(),
 
+  // Grid ranking: "mock" = sample results (free); "google" = Places API (New) Text Search,
+  // billed per grid point. GOOGLE_PLACES_API_KEY must be server-only and restricted to the
+  // Places API (New) in Google Cloud.
+  RANK_PROVIDER: z.enum(["mock", "google"]).default("mock"),
+  GOOGLE_PLACES_API_KEY: z.string().min(20).optional(),
+
   // Scheduled jobs (Vercel Cron sends "Authorization: Bearer $CRON_SECRET")
   CRON_SECRET: z.string().min(16).optional(),
 });

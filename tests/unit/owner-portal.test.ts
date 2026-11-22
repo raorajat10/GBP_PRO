@@ -33,7 +33,7 @@ describe("owner menu", () => {
       "Grow",
       "Account",
     ]);
-    expect(OWNER_NAV.flatMap((g) => g.links)).toHaveLength(16);
+    expect(OWNER_NAV.flatMap((g) => g.links)).toHaveLength(18);
   });
 });
 

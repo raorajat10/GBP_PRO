@@ -403,6 +403,8 @@ const PAGES: [string, string][] = [
   ["/home/reviews/feedback", "Private feedback"],
   ["/home/insights/score", "Profile score"],
   ["/home/insights/analytics", "Analytics"],
+  ["/home/insights/grid", "Grid ranking"],
+  ["/home/insights/competitors", "Competitors"],
   ["/home/insights/reports", "Monthly reports"],
   ["/home/grow/posts", "Posts"],
   ["/home/grow/post-bank", "Post bank"],
@@ -583,6 +585,40 @@ test("support ticket: owner asks, team replies, owner is notified", async ({ pag
       .getByRole("region", { name: "Your requests" })
       .getByText("Done, Google shows the new number now."),
   ).toBeVisible();
+});
+
+test("grid ranking: track a keyword, scan it, see competitors", async ({ page }) => {
+  await signInAsOwner(page);
+  await page.goto("/home/insights/grid");
+  await page.getByLabel("Keyword").fill("Solar Company In Jaipur");
+  await page.getByLabel("Grid").selectOption("3");
+  await page.getByLabel("Distance from you").selectOption("2");
+  await page.getByRole("button", { name: "Track keyword" }).click();
+  await expect(page.getByRole("heading", { name: "“solar company in jaipur”" })).toBeVisible();
+  await expect(page.getByText("Uses 9 of your 250 grid points left this month.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Scan now" }).click();
+  await expect(page).toHaveURL(/scan=/);
+  const grid = page.getByRole("grid", { name: /Your Google position/ });
+  await expect(grid.getByRole("gridcell")).toHaveCount(9);
+  await expect(page.getByText("Sample data")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Scan results" })).toContainText("Visibility");
+  await expect(page.getByText("9 / 250")).toBeVisible();
+  // Picking a corner shows who ranks there.
+  await grid.getByRole("gridcell", { name: /^north-west:/ }).click();
+  await expect(page.getByText(/^Searching from north-west/)).toBeVisible();
+
+  await page.goto("/home/insights/competitors");
+  const table = page.getByRole("region", { name: "Who you're up against" });
+  await expect(table.getByRole("row")).not.toHaveCount(1);
+  await expect(table.getByRole("cell", { name: "You", exact: true })).toBeVisible();
+
+  await page.goto("/home");
+  await expect(page.getByRole("region", { name: "Top competitors" })).toContainText("(you)");
+
+  await page.goto("/home/insights/grid");
+  await page.getByRole("button", { name: "Stop tracking" }).click();
+  await expect(page.getByRole("heading", { name: "Track a keyword" })).toBeVisible();
 });
 
 test("settings: owner renames themselves", async ({ page }) => {

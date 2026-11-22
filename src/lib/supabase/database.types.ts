@@ -232,6 +232,7 @@ export type Database = {
       };
       clients: {
         Row: {
+          rank_points_per_month: number;
           assigned_manager_id: string | null;
           brand_notes: string | null;
           business_name: string;
@@ -250,6 +251,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          rank_points_per_month?: number;
           assigned_manager_id?: string | null;
           brand_notes?: string | null;
           business_name: string;
@@ -267,6 +269,7 @@ export type Database = {
           whatsapp_opt_in_at?: string | null;
         };
         Update: {
+          rank_points_per_month?: number;
           assigned_manager_id?: string | null;
           brand_notes?: string | null;
           business_name?: string;
@@ -1118,6 +1121,216 @@ export type Database = {
           {
             foreignKeyName: "support_tickets_created_by_fkey";
             columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rank_keywords: {
+        Row: {
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          grid_size: number;
+          id: string;
+          keyword: string;
+          location_id: string;
+          radius_km: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          grid_size?: number;
+          id?: string;
+          keyword: string;
+          location_id: string;
+          radius_km?: number;
+        };
+        Update: {
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          grid_size?: number;
+          id?: string;
+          keyword?: string;
+          location_id?: string;
+          radius_km?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rank_keywords_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_keywords_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_keywords_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rank_scan_points: {
+        Row: {
+          client_id: string;
+          col_idx: number;
+          lat: number;
+          lng: number;
+          rank: number | null;
+          results: NonNullable<Json>;
+          row_idx: number;
+          scan_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          col_idx: number;
+          lat: number;
+          lng: number;
+          rank?: number | null;
+          results?: NonNullable<Json>;
+          row_idx: number;
+          scan_id: string;
+        };
+        Update: {
+          client_id?: string;
+          col_idx?: number;
+          lat?: number;
+          lng?: number;
+          rank?: number | null;
+          results?: NonNullable<Json>;
+          row_idx?: number;
+          scan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rank_scan_points_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_scan_points_scan_id_fkey";
+            columns: ["scan_id"];
+            isOneToOne: false;
+            referencedRelation: "rank_scans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rank_scans: {
+        Row: {
+          arp: number | null;
+          avg_rank: number | null;
+          best_rank: number | null;
+          center_lat: number;
+          center_lng: number;
+          client_id: string;
+          created_at: string;
+          error: string | null;
+          finished_at: string | null;
+          found_points: number | null;
+          grid_size: number;
+          id: string;
+          keyword: string;
+          keyword_id: string;
+          location_id: string;
+          points: number;
+          provider: string;
+          radius_km: number;
+          requested_by: string | null;
+          status: string;
+          top3_points: number | null;
+          worst_rank: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          arp?: number | null;
+          avg_rank?: number | null;
+          best_rank?: number | null;
+          center_lat: number;
+          center_lng: number;
+          client_id: string;
+          created_at?: string;
+          error?: string | null;
+          finished_at?: string | null;
+          found_points?: number | null;
+          grid_size: number;
+          id?: string;
+          keyword: string;
+          keyword_id: string;
+          location_id: string;
+          points: number;
+          provider: string;
+          radius_km: number;
+          requested_by?: string | null;
+          status?: string;
+          top3_points?: number | null;
+          worst_rank?: number | null;
+        };
+        Update: {
+          arp?: number | null;
+          avg_rank?: number | null;
+          best_rank?: number | null;
+          center_lat?: number;
+          center_lng?: number;
+          client_id?: string;
+          created_at?: string;
+          error?: string | null;
+          finished_at?: string | null;
+          found_points?: number | null;
+          grid_size?: number;
+          id?: string;
+          keyword?: string;
+          keyword_id?: string;
+          location_id?: string;
+          points?: number;
+          provider?: string;
+          radius_km?: number;
+          requested_by?: string | null;
+          status?: string;
+          top3_points?: number | null;
+          worst_rank?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rank_scans_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_scans_keyword_id_fkey";
+            columns: ["keyword_id"];
+            isOneToOne: false;
+            referencedRelation: "rank_keywords";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_scans_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rank_scans_requested_by_fkey";
+            columns: ["requested_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];

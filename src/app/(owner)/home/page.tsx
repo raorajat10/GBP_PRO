@@ -27,6 +27,7 @@ import {
   Pill,
   Stars,
 } from "@/components/owner/ui";
+import { TopCompetitors } from "@/components/owner/top-competitors";
 import { ShareReviewLink } from "./share-review-link";
 
 export const metadata: Metadata = { title: "Home" };
@@ -233,6 +234,8 @@ async function ClientHome() {
           )}
         </Panel>
       </div>
+
+      {location && <TopCompetitors locationId={location.id} businessName={business.name} />}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel id="reviews" title="Recent reviews" description="Newest on your Google profile">

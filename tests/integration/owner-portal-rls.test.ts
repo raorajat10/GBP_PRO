@@ -28,6 +28,9 @@ const TABLES = [
   "support_tickets",
   "card_events",
   "review_feedback",
+  "rank_keywords",
+  "rank_scans",
+  "rank_scan_points",
 ] as const;
 
 describe.skipIf(!configured)("owner portal tables: row-level security", () => {
@@ -115,6 +118,39 @@ describe.skipIf(!configured)("owner portal tables: row-level security", () => {
         service.from("review_feedback").insert({ client_id: c, message: "private note" }),
       ]);
       for (const r of results) if (r.error) throw r.error;
+      const { data: kw, error: kwErr } = await service
+        .from("rank_keywords")
+        .insert({ client_id: c, location_id: loc, keyword: "solar near me" })
+        .select("id")
+        .single();
+      if (kwErr) throw kwErr;
+      const { data: scan, error: scErr } = await service
+        .from("rank_scans")
+        .insert({
+          client_id: c,
+          location_id: loc,
+          keyword_id: kw.id,
+          keyword: "solar near me",
+          provider: "mock",
+          grid_size: 3,
+          radius_km: 2,
+          center_lat: 26.9,
+          center_lng: 75.8,
+          points: 9,
+        })
+        .select("id")
+        .single();
+      if (scErr) throw scErr;
+      const { error: ptErr } = await service.from("rank_scan_points").insert({
+        scan_id: scan.id,
+        client_id: c,
+        row_idx: 0,
+        col_idx: 0,
+        lat: 26.9,
+        lng: 75.8,
+        rank: 4,
+      });
+      if (ptErr) throw ptErr;
     }
   });
 
@@ -154,6 +190,11 @@ describe.skipIf(!configured)("owner portal tables: row-level security", () => {
         .eq("client_id", clientA)
         .select(),
       users.ownerA.client.from("reviews").delete().eq("client_id", clientA).select(),
+      users.ownerA.client
+        .from("rank_scans")
+        .update({ points: 0 })
+        .eq("client_id", clientA)
+        .select(),
       users.ownerA.client
         .from("support_tickets")
         .update({ status: "resolved" })

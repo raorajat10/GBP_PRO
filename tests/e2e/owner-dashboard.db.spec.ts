@@ -590,10 +590,11 @@ test("support ticket: owner asks, team replies, owner is notified", async ({ pag
 test("grid ranking: track a keyword, scan it, see competitors", async ({ page }) => {
   await signInAsOwner(page);
   await page.goto("/home/insights/grid");
-  await page.getByLabel("Keyword").fill("Solar Company In Jaipur");
-  await page.getByLabel("Grid").selectOption("3");
-  await page.getByLabel("Distance from you").selectOption("2");
-  await page.getByRole("button", { name: "Track keyword" }).click();
+  const add = page.getByRole("region", { name: "Track a keyword" });
+  await add.getByLabel("Keyword", { exact: true }).fill("Solar Company In Jaipur");
+  await add.getByLabel("Grid", { exact: true }).selectOption("3");
+  await add.getByLabel("Distance from you").selectOption("2");
+  await add.getByRole("button", { name: "Track keyword" }).click();
   await expect(page.getByRole("heading", { name: "“solar company in jaipur”" })).toBeVisible();
   await expect(page.getByText("Uses 9 of your 250 grid points left this month.")).toBeVisible();
 

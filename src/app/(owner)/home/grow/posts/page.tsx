@@ -14,7 +14,11 @@ const FILTERS = [
   { key: "live", label: "Live", statuses: ["published"] },
   { key: "scheduled", label: "Scheduled", statuses: ["scheduled", "publishing"] },
   { key: "waiting", label: "Waiting for you", statuses: ["pending_approval"] },
-  { key: "other", label: "Changes and expired", statuses: ["changes_requested", "expired", "failed"] },
+  {
+    key: "other",
+    label: "Changes and expired",
+    statuses: ["changes_requested", "expired", "failed"],
+  },
 ] as const;
 type FilterKey = (typeof FILTERS)[number]["key"];
 
@@ -25,7 +29,10 @@ export default function PostsPage({ searchParams }: PageProps<"/home/grow/posts"
         title="Posts"
         description="Updates our team writes for your Google profile. Nothing goes live until you approve it."
         actions={
-          <Link href="/home/grow/post-bank" className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold">
+          <Link
+            href="/home/grow/post-bank"
+            className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold"
+          >
             Send photos for posts
           </Link>
         }
@@ -46,7 +53,9 @@ async function Posts({ filter }: { filter: FilterKey }) {
   // Row-level security hides drafts from owners.
   const posts = (await listPosts(business.id)).filter((p) => p.status !== "draft");
   const count = (f: (typeof FILTERS)[number]) =>
-    f.statuses ? posts.filter((p) => (f.statuses as readonly string[]).includes(p.status)).length : posts.length;
+    f.statuses
+      ? posts.filter((p) => (f.statuses as readonly string[]).includes(p.status)).length
+      : posts.length;
   const active = FILTERS.find((f) => f.key === filter)!;
   const shown = active.statuses
     ? posts.filter((p) => (active.statuses as readonly string[]).includes(p.status))
@@ -74,7 +83,10 @@ async function Posts({ filter }: { filter: FilterKey }) {
       {shown.length ? (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((p) => (
-            <li key={p.id} className="border-line bg-surface flex flex-col overflow-hidden rounded-2xl border">
+            <li
+              key={p.id}
+              className="border-line bg-surface flex flex-col overflow-hidden rounded-2xl border"
+            >
               {p.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.photoUrl} alt="" className="aspect-[4/3] w-full object-cover" />

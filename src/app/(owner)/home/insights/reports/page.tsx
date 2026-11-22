@@ -49,7 +49,11 @@ async function Reports() {
                 className="hover:text-primary flex items-center justify-between gap-3 py-3"
               >
                 <span className="font-semibold">{monthLabel(m)}</span>
-                {m === current ? <Pill tone="accent">So far this month</Pill> : <Pill tone="success">Complete</Pill>}
+                {m === current ? (
+                  <Pill tone="accent">So far this month</Pill>
+                ) : (
+                  <Pill tone="success">Complete</Pill>
+                )}
               </Link>
             </li>
           ))}

@@ -38,13 +38,17 @@ async function Report({ month }: { month: string }) {
   const [metrics, prevMetrics, reviews, allReviews, posts, audit] = await Promise.all([
     supabase
       .from("location_metrics_daily")
-      .select("day, impressions_search, impressions_maps, calls, direction_requests, website_clicks")
+      .select(
+        "day, impressions_search, impressions_maps, calls, direction_requests, website_clicks",
+      )
       .eq("location_id", location.id)
       .gte("day", first)
       .lte("day", last),
     supabase
       .from("location_metrics_daily")
-      .select("day, impressions_search, impressions_maps, calls, direction_requests, website_clicks")
+      .select(
+        "day, impressions_search, impressions_maps, calls, direction_requests, website_clicks",
+      )
       .eq("location_id", location.id)
       .gte("day", prev.first)
       .lte("day", prev.last),
@@ -91,19 +95,42 @@ async function Report({ month }: { month: string }) {
   const days = metrics.data?.length ?? 0;
 
   const rows: { label: string; value: string; delta: number | null }[] = [
-    { label: "Profile views", value: nf.format(now.views), delta: change(now.views, before?.views) },
-    { label: "From Google Search", value: nf.format(now.search), delta: change(now.search, before?.search) },
-    { label: "From Google Maps", value: nf.format(now.maps), delta: change(now.maps, before?.maps) },
+    {
+      label: "Profile views",
+      value: nf.format(now.views),
+      delta: change(now.views, before?.views),
+    },
+    {
+      label: "From Google Search",
+      value: nf.format(now.search),
+      delta: change(now.search, before?.search),
+    },
+    {
+      label: "From Google Maps",
+      value: nf.format(now.maps),
+      delta: change(now.maps, before?.maps),
+    },
     { label: "Calls", value: nf.format(now.calls), delta: change(now.calls, before?.calls) },
-    { label: "Direction requests", value: nf.format(now.directions), delta: change(now.directions, before?.directions) },
-    { label: "Website clicks", value: nf.format(now.website), delta: change(now.website, before?.website) },
+    {
+      label: "Direction requests",
+      value: nf.format(now.directions),
+      delta: change(now.directions, before?.directions),
+    },
+    {
+      label: "Website clicks",
+      value: nf.format(now.website),
+      delta: change(now.website, before?.website),
+    },
   ];
 
   return (
     <article className="flex flex-col gap-6 print:gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/home/insights/reports" className="text-primary text-sm hover:underline print:hidden">
+          <Link
+            href="/home/insights/reports"
+            className="text-primary text-sm hover:underline print:hidden"
+          >
             All reports
           </Link>
           <h1 className="text-2xl font-bold tracking-tight sm:text-[1.75rem]">
@@ -118,8 +145,16 @@ async function Report({ month }: { month: string }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3 print:grid-cols-3">
-        <Big label="Profile views" value={nf.format(now.views)} delta={change(now.views, before?.views)} />
-        <Big label="Customer actions" value={nf.format(now.actions)} delta={change(now.actions, before?.actions)} />
+        <Big
+          label="Profile views"
+          value={nf.format(now.views)}
+          delta={change(now.views, before?.views)}
+        />
+        <Big
+          label="Customer actions"
+          value={nf.format(now.actions)}
+          delta={change(now.actions, before?.actions)}
+        />
         <Big
           label="Profile score"
           value={audit.data ? String(audit.data.score) : "–"}
@@ -155,15 +190,24 @@ async function Report({ month }: { month: string }) {
           <dl className="divide-line flex flex-col divide-y text-sm">
             <Line label="New reviews this month" value={nf.format(newReviews.length)} />
             <Line label="Their average rating" value={newAvg != null ? `${newAvg} ★` : "–"} />
-            <Line label="Replied to" value={newReviews.length ? `${replied} of ${newReviews.length}` : "–"} />
-            <Line label="Overall rating at month end" value={overallAvg != null ? `${overallAvg} ★ (${nf.format(cumulative.length)})` : "–"} />
+            <Line
+              label="Replied to"
+              value={newReviews.length ? `${replied} of ${newReviews.length}` : "–"}
+            />
+            <Line
+              label="Overall rating at month end"
+              value={overallAvg != null ? `${overallAvg} ★ (${nf.format(cumulative.length)})` : "–"}
+            />
           </dl>
         </Panel>
         <Panel title="Our work for you">
           <dl className="divide-line flex flex-col divide-y text-sm">
             <Line label="Posts published" value={nf.format(posts.count ?? 0)} />
             <Line label="Reviews answered" value={nf.format(replied)} />
-            <Line label="Score at month end" value={audit.data ? `${audit.data.score} / 100` : "–"} />
+            <Line
+              label="Score at month end"
+              value={audit.data ? `${audit.data.score} / 100` : "–"}
+            />
           </dl>
         </Panel>
       </div>
@@ -171,7 +215,17 @@ async function Report({ month }: { month: string }) {
   );
 }
 
-function Big({ label, value, delta, tone }: { label: string; value: string; delta?: number | null; tone?: string }) {
+function Big({
+  label,
+  value,
+  delta,
+  tone,
+}: {
+  label: string;
+  value: string;
+  delta?: number | null;
+  tone?: string;
+}) {
   return (
     <div className="border-line bg-surface rounded-2xl border px-5 py-4">
       <p className="text-ink-muted text-sm">{label}</p>

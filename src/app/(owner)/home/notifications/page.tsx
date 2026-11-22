@@ -65,7 +65,10 @@ async function Notifications({ unreadOnly }: { unreadOnly: boolean }) {
         actions={
           unread > 0 ? (
             <form action={markAllRead}>
-              <button type="submit" className="border-line hover:bg-paper rounded-lg border px-3 py-1.5 text-sm font-medium">
+              <button
+                type="submit"
+                className="border-line hover:bg-paper rounded-lg border px-3 py-1.5 text-sm font-medium"
+              >
                 Mark all as read
               </button>
             </form>

@@ -61,11 +61,15 @@ export function AddKeywordForm() {
           {pending ? "Adding…" : "Track keyword"}
         </button>
       </div>
-      {Object.values(state.errors ?? {}).flat().filter(Boolean).slice(0, 1).map((m) => (
-        <p key={m} className="text-danger text-sm">
-          {m}
-        </p>
-      ))}
+      {Object.values(state.errors ?? {})
+        .flat()
+        .filter(Boolean)
+        .slice(0, 1)
+        .map((m) => (
+          <p key={m} className="text-danger text-sm">
+            {m}
+          </p>
+        ))}
       {state.message && (
         <p role="status" className={state.ok ? "text-success text-sm" : "text-danger text-sm"}>
           {state.message}
@@ -75,7 +79,15 @@ export function AddKeywordForm() {
   );
 }
 
-export function ScanNowButton({ keywordId, points, left }: { keywordId: string; points: number; left: number }) {
+export function ScanNowButton({
+  keywordId,
+  points,
+  left,
+}: {
+  keywordId: string;
+  points: number;
+  left: number;
+}) {
   const [state, action, pending] = useActionState<OwnerFormState, FormData>(scanNowAction, {});
   const enough = left >= points;
   return (
@@ -89,7 +101,9 @@ export function ScanNowButton({ keywordId, points, left }: { keywordId: string; 
         {pending ? "Scanning…" : "Scan now"}
       </button>
       <span className="text-ink-muted text-sm">
-        {enough ? `Uses ${points} of your ${left} grid points left this month.` : `Needs ${points} grid points; ${left} left this month.`}
+        {enough
+          ? `Uses ${points} of your ${left} grid points left this month.`
+          : `Needs ${points} grid points; ${left} left this month.`}
       </span>
       {state.message && (
         <p role="alert" className="text-danger w-full text-sm">

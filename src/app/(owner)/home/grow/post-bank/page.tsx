@@ -57,7 +57,10 @@ async function Bank() {
     const s = STATUS[i.status as keyof typeof STATUS] ?? STATUS.submitted;
     const url = i.media ? urls.get(i.media.storage_path) : undefined;
     return (
-      <li key={i.id} className="border-line bg-surface flex flex-col overflow-hidden rounded-2xl border">
+      <li
+        key={i.id}
+        className="border-line bg-surface flex flex-col overflow-hidden rounded-2xl border"
+      >
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="" className="aspect-square w-full object-cover" />
@@ -96,7 +99,9 @@ async function Bank() {
     <>
       {planned.length > 0 && (
         <Panel title="Planned" description="Photos you want posted on a date, soonest first">
-          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{planned.map(card)}</ul>
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+            {planned.map(card)}
+          </ul>
         </Panel>
       )}
       {rest.length > 0 && (

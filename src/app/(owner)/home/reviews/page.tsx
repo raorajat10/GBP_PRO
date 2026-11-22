@@ -147,7 +147,11 @@ async function Reviews({ filters }: { filters: ReviewFilters }) {
         <FilterLink filters={filters} change={{ stars: null, reply: "all" }} label="All" />
         <FilterLink filters={filters} change={{ reply: "unreplied" }} label="Needs a reply" />
         <FilterLink filters={filters} change={{ reply: "replied" }} label="Replied" />
-        <FilterLink filters={filters} change={{ stars: null, reply: "all" , sort: "lowest" }} label="Lowest first" />
+        <FilterLink
+          filters={filters}
+          change={{ stars: null, reply: "all", sort: "lowest" }}
+          label="Lowest first"
+        />
         {filters.stars && (
           <Link
             href={`/home/reviews${reviewFilterQuery({ ...filters, stars: null, page: 1 })}`}

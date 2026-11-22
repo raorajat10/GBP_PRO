@@ -23,7 +23,14 @@ export function TicketForm() {
         <label htmlFor={ids.subject} className="text-sm font-medium">
           Subject
         </label>
-        <input id={ids.subject} name="subject" required maxLength={150} className={input} placeholder="For example: wrong phone number on Google" />
+        <input
+          id={ids.subject}
+          name="subject"
+          required
+          maxLength={150}
+          className={input}
+          placeholder="For example: wrong phone number on Google"
+        />
         {err("subject")}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -60,11 +67,22 @@ export function TicketForm() {
         <label htmlFor={ids.description} className="text-sm font-medium">
           What do you need?
         </label>
-        <textarea id={ids.description} name="description" required rows={5} maxLength={4000} className={input} />
+        <textarea
+          id={ids.description}
+          name="description"
+          required
+          rows={5}
+          maxLength={4000}
+          className={input}
+        />
         {err("description")}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending}
+          className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold disabled:opacity-60"
+        >
           {pending ? "Sending…" : "Send to our team"}
         </button>
         {state.message && (

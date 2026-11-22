@@ -8,7 +8,16 @@ import { freeTierUsage, scanAllowance, selfPlaceId } from "@/lib/rank/service";
 import { serverEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
-import { Empty, Figure, fmtDateTime, NoBusiness, NoProfile, PageHeader, Panel, Pill } from "@/components/owner/ui";
+import {
+  Empty,
+  Figure,
+  fmtDateTime,
+  NoBusiness,
+  NoProfile,
+  PageHeader,
+  Panel,
+  Pill,
+} from "@/components/owner/ui";
 import { removeKeywordAction } from "./actions";
 import { AddKeywordForm, ScanNowButton } from "./grid-forms";
 import { GridView } from "./grid-view";
@@ -58,7 +67,8 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap justify-between gap-2 text-sm">
         <span>
-          Free scans this month: <span className="font-semibold">{scansThatFit(allowance.limit, 5)} of 5 × 5</span>{" "}
+          Free scans this month:{" "}
+          <span className="font-semibold">{scansThatFit(allowance.limit, 5)} of 5 × 5</span>{" "}
           <span className="text-ink-muted">({allowance.limit} grid points)</span>
         </span>
         <span className="font-semibold tabular-nums">
@@ -68,7 +78,9 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
       <div className="bg-paper h-2 overflow-hidden rounded-full">
         <div
           className="bg-primary h-full rounded-full"
-          style={{ width: `${allowance.limit ? Math.min(100, (allowance.used / allowance.limit) * 100) : 100}%` }}
+          style={{
+            width: `${allowance.limit ? Math.min(100, (allowance.used / allowance.limit) * 100) : 100}%`,
+          }}
         />
       </div>
       <p className="text-ink-muted text-xs">
@@ -84,7 +96,10 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
   if (!kw) {
     return (
       <>
-        <Panel title="Track a keyword" description="Up to 5 searches your customers make, like “solar company in jaipur” or “inverter repair near me”.">
+        <Panel
+          title="Track a keyword"
+          description="Up to 5 searches your customers make, like “solar company in jaipur” or “inverter repair near me”."
+        >
           <AddKeywordForm />
         </Panel>
         <Panel>{meter}</Panel>
@@ -94,14 +109,20 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
 
   const { data: scans } = await supabase
     .from("rank_scans")
-    .select("id, status, provider, grid_size, radius_km, points, found_points, top3_points, avg_rank, arp, best_rank, worst_rank, error, created_at")
+    .select(
+      "id, status, provider, grid_size, radius_km, points, found_points, top3_points, avg_rank, arp, best_rank, worst_rank, error, created_at",
+    )
     .eq("keyword_id", kw.id)
     .order("created_at", { ascending: false })
     .limit(10);
   const history = scans ?? [];
-  const scan = history.find((s) => s.id === scanId) ?? history.find((s) => s.status === "done") ?? null;
+  const scan =
+    history.find((s) => s.id === scanId) ?? history.find((s) => s.status === "done") ?? null;
   const { data: pts } = scan
-    ? await supabase.from("rank_scan_points").select("row_idx, col_idx, rank, results").eq("scan_id", scan.id)
+    ? await supabase
+        .from("rank_scan_points")
+        .select("row_idx, col_idx, rank, results")
+        .eq("scan_id", scan.id)
     : { data: null };
   const points = (pts ?? []).map((p) => ({
     row: p.row_idx,
@@ -206,7 +227,9 @@ async function Grid({ keywordId, scanId }: { keywordId: string | null; scanId: s
                   aria-current={s.id === scan?.id ? "true" : undefined}
                   className="hover:text-primary flex flex-wrap items-center justify-between gap-2 py-2.5"
                 >
-                  <span className={s.id === scan?.id ? "font-semibold" : ""}>{fmtDateTime(s.created_at)}</span>
+                  <span className={s.id === scan?.id ? "font-semibold" : ""}>
+                    {fmtDateTime(s.created_at)}
+                  </span>
                   <span className="flex items-center gap-3 tabular-nums">
                     {s.status === "done" ? (
                       <>

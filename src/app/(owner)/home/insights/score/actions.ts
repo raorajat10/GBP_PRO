@@ -14,7 +14,8 @@ const MIN_GAP_MS = 10 * 60_000;
  */
 export async function recalculateScore(_: OwnerFormState): Promise<OwnerFormState> {
   const { user, business, location, snapshot } = await getOwnerContext();
-  if (!business || !location || !snapshot) return { message: "Your Google profile isn't linked yet." };
+  if (!business || !location || !snapshot)
+    return { message: "Your Google profile isn't linked yet." };
   const { data: last } = await createSupabaseAdminClient()
     .from("audits")
     .select("created_at")
@@ -26,7 +27,12 @@ export async function recalculateScore(_: OwnerFormState): Promise<OwnerFormStat
     return { ok: true, message: "Your score is already up to date." };
   }
   try {
-    await recordAudit({ locationId: location.id, clientId: business.id, snapshot, userId: user.id });
+    await recordAudit({
+      locationId: location.id,
+      clientId: business.id,
+      snapshot,
+      userId: user.id,
+    });
   } catch (e) {
     console.error(e);
     return { message: "Couldn't recalculate right now. Try again later." };

@@ -32,7 +32,10 @@ async function Attributes() {
   const known = new Set(ATTRIBUTE_GROUPS.flatMap((g) => g.items.map((i) => i.key)));
   const extra = current.filter((k) => !known.has(k));
   const groups = extra.length
-    ? [...ATTRIBUTE_GROUPS, { label: "Other", items: extra.map((k) => ({ key: k, label: attributeLabel(k) })) }]
+    ? [
+        ...ATTRIBUTE_GROUPS,
+        { label: "Other", items: extra.map((k) => ({ key: k, label: attributeLabel(k) })) },
+      ]
     : ATTRIBUTE_GROUPS;
 
   return (

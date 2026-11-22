@@ -65,7 +65,11 @@ async function Feedback({ status }: { status: Status | null }) {
     <>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Figure label="All feedback" value={nf.format(all.length)} />
-        <Figure label="New" value={nf.format(count("pending"))} tone={count("pending") ? "accent" : "ink"} />
+        <Figure
+          label="New"
+          value={nf.format(count("pending"))}
+          tone={count("pending") ? "accent" : "ink"}
+        />
         <Figure label="Contacted" value={nf.format(count("contacted"))} />
         <Figure label="Resolved" value={nf.format(count("resolved"))} />
         <Figure label="Average stars" value={avg ?? "–"} />
@@ -97,7 +101,11 @@ async function Feedback({ status }: { status: Status | null }) {
                 <li key={f.id} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      {f.rating != null ? <Stars rating={f.rating} /> : <span className="text-ink-muted text-sm">No stars</span>}
+                      {f.rating != null ? (
+                        <Stars rating={f.rating} />
+                      ) : (
+                        <span className="text-ink-muted text-sm">No stars</span>
+                      )}
                       <Pill tone={st.tone}>{st.label}</Pill>
                     </div>
                     <span className="text-ink-muted text-xs">{fmtDateTime(f.created_at)}</span>
@@ -117,16 +125,28 @@ async function Feedback({ status }: { status: Status | null }) {
                     <form action={setFeedbackStatus} className="flex items-center gap-2">
                       <input type="hidden" name="id" value={f.id} />
                       {f.status !== "contacted" && f.status !== "resolved" && (
-                        <button name="status" value="contacted" className="border-line hover:bg-paper rounded-lg border px-3 py-1 text-sm">
+                        <button
+                          name="status"
+                          value="contacted"
+                          className="border-line hover:bg-paper rounded-lg border px-3 py-1 text-sm"
+                        >
                           Mark contacted
                         </button>
                       )}
                       {f.status !== "resolved" ? (
-                        <button name="status" value="resolved" className="bg-primary text-primary-ink rounded-lg px-3 py-1 text-sm font-semibold">
+                        <button
+                          name="status"
+                          value="resolved"
+                          className="bg-primary text-primary-ink rounded-lg px-3 py-1 text-sm font-semibold"
+                        >
                           Mark resolved
                         </button>
                       ) : (
-                        <button name="status" value="pending" className="text-ink-muted text-sm hover:underline">
+                        <button
+                          name="status"
+                          value="pending"
+                          className="text-ink-muted text-sm hover:underline"
+                        >
                           Reopen
                         </button>
                       )}

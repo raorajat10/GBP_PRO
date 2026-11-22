@@ -4,7 +4,16 @@ import { Suspense } from "react";
 import { getOwnerContext } from "@/lib/owner/context";
 import { ListSkeleton } from "@/components/skeleton";
 import { PhotoUploadForm } from "@/components/owner/photo-upload-form";
-import { Figure, fmtDate, NoBusiness, NoProfile, nf, PageHeader, Panel, Pill } from "@/components/owner/ui";
+import {
+  Figure,
+  fmtDate,
+  NoBusiness,
+  NoProfile,
+  nf,
+  PageHeader,
+  Panel,
+  Pill,
+} from "@/components/owner/ui";
 
 export const metadata: Metadata = { title: "Photos" };
 
@@ -53,7 +62,10 @@ async function Photos() {
         <Figure label="Latest photo" value={ph.latest ? fmtDate(ph.latest) : "–"} />
       </div>
 
-      <Panel title="Send photos to our team" description="We check each photo and add it to the right place on your profile.">
+      <Panel
+        title="Send photos to our team"
+        description="We check each photo and add it to the right place on your profile."
+      >
         <PhotoUploadForm
           withDate={false}
           defaultCaption="For my Google profile photos"

@@ -18,15 +18,7 @@ import { scoreBand } from "@/components/score-badge";
 import { ScoreGauge } from "@/components/score-gauge";
 import { BreakdownRow } from "@/components/owner/breakdown-row";
 import { PostStatusChip } from "@/components/post-status-chip";
-import {
-  Empty,
-  fmtDate,
-  NoBusiness,
-  nf,
-  Panel,
-  Pill,
-  Stars,
-} from "@/components/owner/ui";
+import { Empty, fmtDate, NoBusiness, nf, Panel, Pill, Stars } from "@/components/owner/ui";
 import { TopCompetitors } from "@/components/owner/top-competitors";
 import { ShareReviewLink } from "./share-review-link";
 
@@ -100,7 +92,10 @@ async function ClientHome() {
           description="Health of your Google profile"
           actions={
             audit ? (
-              <Link href="/home/insights/score" className="text-primary text-sm font-medium hover:underline">
+              <Link
+                href="/home/insights/score"
+                className="text-primary text-sm font-medium hover:underline"
+              >
                 Full report
               </Link>
             ) : undefined
@@ -128,7 +123,10 @@ async function ClientHome() {
           description="What customers say on Google"
           actions={
             snapshot ? (
-              <Link href="/home/reviews" className="text-primary text-sm font-medium hover:underline">
+              <Link
+                href="/home/reviews"
+                className="text-primary text-sm font-medium hover:underline"
+              >
                 All reviews
               </Link>
             ) : undefined
@@ -158,7 +156,10 @@ async function ClientHome() {
           }
           actions={
             snapshot?.metrics.days ? (
-              <Link href="/home/insights/analytics" className="text-primary text-sm font-medium hover:underline">
+              <Link
+                href="/home/insights/analytics"
+                className="text-primary text-sm font-medium hover:underline"
+              >
                 Analytics
               </Link>
             ) : undefined
@@ -247,7 +248,10 @@ async function ClientHome() {
           title="Posts"
           description="Updates we publish on your profile"
           actions={
-            <Link href="/home/grow/posts" className="text-primary text-sm font-medium hover:underline">
+            <Link
+              href="/home/grow/posts"
+              className="text-primary text-sm font-medium hover:underline"
+            >
               All posts
             </Link>
           }

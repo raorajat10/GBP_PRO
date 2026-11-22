@@ -7,7 +7,16 @@ import { competitorsFrom, type PlaceResult } from "@/lib/rank/grid";
 import { selfPlaceId } from "@/lib/rank/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListSkeleton } from "@/components/skeleton";
-import { Empty, fmtDate, NoBusiness, NoProfile, nf, PageHeader, Panel, Pill } from "@/components/owner/ui";
+import {
+  Empty,
+  fmtDate,
+  NoBusiness,
+  NoProfile,
+  nf,
+  PageHeader,
+  Panel,
+  Pill,
+} from "@/components/owner/ui";
 
 export const metadata: Metadata = { title: "Competitors" };
 
@@ -35,7 +44,11 @@ async function Competitors({ keywordId }: { keywordId: string | null }) {
   if (!location) return <NoProfile what="Your competitors" />;
   const supabase = await createSupabaseServerClient();
   const [{ data: keywords }, { data: loc }] = await Promise.all([
-    supabase.from("rank_keywords").select("id, keyword").eq("location_id", location.id).order("created_at"),
+    supabase
+      .from("rank_keywords")
+      .select("id, keyword")
+      .eq("location_id", location.id)
+      .order("created_at"),
     supabase.from("locations").select("id, place_id").eq("id", location.id).single(),
   ]);
   const kws = (keywords ?? []).filter((k) => !keywordId || k.id === keywordId);
@@ -60,12 +73,16 @@ async function Competitors({ keywordId }: { keywordId: string | null }) {
       <Panel>
         <Empty
           action={
-            <Link href="/home/insights/grid" className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold">
+            <Link
+              href="/home/insights/grid"
+              className="bg-primary text-primary-ink rounded-lg px-4 py-2 font-semibold"
+            >
               Go to grid ranking
             </Link>
           }
         >
-          Competitors appear after your first grid scan. Track a keyword and scan it to see who you&apos;re up against.
+          Competitors appear after your first grid scan. Track a keyword and scan it to see who
+          you&apos;re up against.
         </Empty>
       </Panel>
     );
@@ -120,20 +137,35 @@ async function Competitors({ keywordId }: { keywordId: string | null }) {
           <p>
             {you ? (
               ahead === 0 ? (
-                <span className="font-semibold">You&apos;re the most visible business in these searches.</span>
+                <span className="font-semibold">
+                  You&apos;re the most visible business in these searches.
+                </span>
               ) : (
                 <>
-                  <span className="font-semibold">{ahead === 1 ? "1 business shows up" : `${ahead} businesses show up`} more often than you.</span>{" "}
-                  <span className="text-ink-muted">You appear at {Math.round(you.visibility * 100)}% of points.</span>
+                  <span className="font-semibold">
+                    {ahead === 1 ? "1 business shows up" : `${ahead} businesses show up`} more often
+                    than you.
+                  </span>{" "}
+                  <span className="text-ink-muted">
+                    You appear at {Math.round(you.visibility * 100)}% of points.
+                  </span>
                 </>
               )
             ) : (
-              <span className="font-semibold">You didn&apos;t appear in the top 20 at any point.</span>
+              <span className="font-semibold">
+                You didn&apos;t appear in the top 20 at any point.
+              </span>
             )}
           </p>
           <p className="text-ink-muted text-sm">
-            {nf.format(pointsScanned)} points from {scans.length} {scans.length === 1 ? "scan" : "scans"}, latest{" "}
-            {fmtDate(scans.map((s) => s.created_at).sort().at(-1)!)}
+            {nf.format(pointsScanned)} points from {scans.length}{" "}
+            {scans.length === 1 ? "scan" : "scans"}, latest{" "}
+            {fmtDate(
+              scans
+                .map((s) => s.created_at)
+                .sort()
+                .at(-1)!,
+            )}
             {sample && (
               <>
                 {" "}
@@ -144,7 +176,10 @@ async function Competitors({ keywordId }: { keywordId: string | null }) {
         </div>
       </Panel>
 
-      <Panel title="Who you're up against" description="Visibility: share of grid points where they appear in the top 20.">
+      <Panel
+        title="Who you're up against"
+        description="Visibility: share of grid points where they appear in the top 20."
+      >
         <div className="-mx-5 overflow-x-auto px-5">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <thead>
@@ -204,18 +239,27 @@ function Row(props: {
 }) {
   const pct = Math.round(props.visibility * 100);
   return (
-    <tr className={`border-line border-t ${props.highlight ? "bg-primary-soft/60 font-semibold" : ""}`}>
+    <tr
+      className={`border-line border-t ${props.highlight ? "bg-primary-soft/60 font-semibold" : ""}`}
+    >
       <td className="py-2.5 pr-3 tabular-nums">{props.n}</td>
       <td className="py-2.5 pr-3">
         <span className="block">{props.name}</span>
-        {props.address && <span className="text-ink-muted block text-xs font-normal">{props.address}</span>}
+        {props.address && (
+          <span className="text-ink-muted block text-xs font-normal">{props.address}</span>
+        )}
         {props.keywords && props.keywords.length > 1 && (
-          <span className="text-ink-muted block text-xs font-normal">{props.keywords.join(", ")}</span>
+          <span className="text-ink-muted block text-xs font-normal">
+            {props.keywords.join(", ")}
+          </span>
         )}
       </td>
       <td className="py-2.5 pr-3 text-right">
         <span className="inline-flex items-center justify-end gap-2">
-          <span className="bg-paper hidden h-1.5 w-16 overflow-hidden rounded-full sm:block" aria-hidden="true">
+          <span
+            className="bg-paper hidden h-1.5 w-16 overflow-hidden rounded-full sm:block"
+            aria-hidden="true"
+          >
             <span className="bg-series-1 block h-full rounded-full" style={{ width: `${pct}%` }} />
           </span>
           <span className="tabular-nums">{pct}%</span>

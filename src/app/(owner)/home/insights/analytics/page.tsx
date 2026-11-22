@@ -41,7 +41,10 @@ async function Analytics({ range }: { range: RangeDays }) {
       title="Analytics"
       description="How people found your Google profile and what they did next."
       actions={
-        <nav aria-label="Date range" className="border-line bg-surface flex rounded-lg border p-0.5 text-sm">
+        <nav
+          aria-label="Date range"
+          className="border-line bg-surface flex rounded-lg border p-0.5 text-sm"
+        >
           {RANGES.map((r) => (
             <Link
               key={r}
@@ -61,8 +64,20 @@ async function Analytics({ range }: { range: RangeDays }) {
     />
   );
   const { business, location } = await getOwnerContext();
-  if (!business) return (<>{header}<NoBusiness /></>);
-  if (!location) return (<>{header}<NoProfile what="Your analytics" /></>);
+  if (!business)
+    return (
+      <>
+        {header}
+        <NoBusiness />
+      </>
+    );
+  if (!location)
+    return (
+      <>
+        {header}
+        <NoProfile what="Your analytics" />
+      </>
+    );
 
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
@@ -78,8 +93,8 @@ async function Analytics({ range }: { range: RangeDays }) {
         {header}
         <Panel>
           <Empty>
-            Daily numbers appear after our next update of your Google profile. Google shares
-            them with a delay of a few days.
+            Daily numbers appear after our next update of your Google profile. Google shares them
+            with a delay of a few days.
           </Empty>
         </Panel>
       </>
@@ -103,9 +118,18 @@ async function Analytics({ range }: { range: RangeDays }) {
       </p>
 
       <section aria-label="Totals" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Tile label="Profile views" value={nf.format(now.views)} delta={change(now.views, before?.views)} note={`Search ${nf.format(now.search)}, Maps ${nf.format(now.maps)}`} />
+        <Tile
+          label="Profile views"
+          value={nf.format(now.views)}
+          delta={change(now.views, before?.views)}
+          note={`Search ${nf.format(now.search)}, Maps ${nf.format(now.maps)}`}
+        />
         <Tile label="Calls" value={nf.format(now.calls)} delta={change(now.calls, before?.calls)} />
-        <Tile label="Direction requests" value={nf.format(now.directions)} delta={change(now.directions, before?.directions)} />
+        <Tile
+          label="Direction requests"
+          value={nf.format(now.directions)}
+          delta={change(now.directions, before?.directions)}
+        />
         <Tile
           label="Engagement"
           value={now.engagement == null ? "–" : `${(now.engagement * 100).toFixed(1)}%`}
@@ -113,19 +137,33 @@ async function Analytics({ range }: { range: RangeDays }) {
         />
       </section>
 
-      <Panel title="Profile views" description="People who saw your profile, by where they found it">
+      <Panel
+        title="Profile views"
+        description="People who saw your profile, by where they found it"
+      >
         <LineChart
           label={`Daily profile views from Google Search and Google Maps, last ${dates.length} days`}
           dates={dates}
           series={[
-            { name: "Search", color: "var(--series-1)", values: current.map((d) => d.impressions_search) },
-            { name: "Maps", color: "var(--series-2)", values: current.map((d) => d.impressions_maps) },
+            {
+              name: "Search",
+              color: "var(--series-1)",
+              values: current.map((d) => d.impressions_search),
+            },
+            {
+              name: "Maps",
+              color: "var(--series-2)",
+              values: current.map((d) => d.impressions_maps),
+            },
           ]}
         />
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Panel title="Customer actions" description="Calls, direction requests and website clicks per day">
+        <Panel
+          title="Customer actions"
+          description="Calls, direction requests and website clicks per day"
+        >
           <LineChart
             label={`Daily customer actions, last ${dates.length} days`}
             dates={dates}
@@ -151,7 +189,10 @@ async function Analytics({ range }: { range: RangeDays }) {
                   <span className="font-bold tabular-nums">{nf.format(r.value)}</span>
                 </div>
                 <div className="bg-paper mt-1.5 h-2 overflow-hidden rounded-full">
-                  <div className="bg-series-1 h-full rounded-full" style={{ width: `${(r.value / actionsMax) * 100}%` }} />
+                  <div
+                    className="bg-series-1 h-full rounded-full"
+                    style={{ width: `${(r.value / actionsMax) * 100}%` }}
+                  />
                 </div>
               </li>
             ))}
@@ -178,9 +219,13 @@ function Tile({
       <p className="text-ink-muted text-sm">{label}</p>
       <p className="text-3xl leading-tight font-bold tabular-nums">{value}</p>
       {delta != null && (
-        <p className={`text-xs font-semibold ${delta > 0 ? "text-success" : delta < 0 ? "text-danger" : "text-ink-muted"}`}>
+        <p
+          className={`text-xs font-semibold ${delta > 0 ? "text-success" : delta < 0 ? "text-danger" : "text-ink-muted"}`}
+        >
           <span aria-hidden="true">{delta > 0 ? "▲ " : delta < 0 ? "▼ " : ""}</span>
-          {delta === 0 ? "Same as before" : `${Math.abs(delta)}% ${delta > 0 ? "more" : "fewer"} than before`}
+          {delta === 0
+            ? "Same as before"
+            : `${Math.abs(delta)}% ${delta > 0 ? "more" : "fewer"} than before`}
         </p>
       )}
       {note && <p className="text-ink-muted text-xs">{note}</p>}

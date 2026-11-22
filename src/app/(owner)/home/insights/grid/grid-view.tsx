@@ -77,11 +77,26 @@ export function GridView({
             }),
           )}
         </div>
-        <ul className="text-ink-muted flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs" aria-label="Colour key">
-          <li className="flex items-center gap-1.5"><span className="bg-success size-3 rounded-full" aria-hidden="true" />1–3 (map pack)</li>
-          <li className="flex items-center gap-1.5"><span className="bg-accent size-3 rounded-full" aria-hidden="true" />4–10</li>
-          <li className="flex items-center gap-1.5"><span className="bg-danger size-3 rounded-full" aria-hidden="true" />11–20</li>
-          <li className="flex items-center gap-1.5"><span className="border-line bg-paper size-3 rounded-full border" aria-hidden="true" />Not in top 20</li>
+        <ul
+          className="text-ink-muted flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs"
+          aria-label="Colour key"
+        >
+          <li className="flex items-center gap-1.5">
+            <span className="bg-success size-3 rounded-full" aria-hidden="true" />
+            1–3 (map pack)
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="bg-accent size-3 rounded-full" aria-hidden="true" />
+            4–10
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="bg-danger size-3 rounded-full" aria-hidden="true" />
+            11–20
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="border-line bg-paper size-3 rounded-full border" aria-hidden="true" />
+            Not in top 20
+          </li>
         </ul>
       </div>
 
@@ -99,10 +114,16 @@ export function GridView({
                   key={r.placeId}
                   className={`flex items-baseline gap-3 rounded-lg px-2 py-1.5 ${you ? "bg-primary-soft font-semibold" : ""}`}
                 >
-                  <span className="text-ink-muted w-6 shrink-0 text-right tabular-nums">{i + 1}</span>
+                  <span className="text-ink-muted w-6 shrink-0 text-right tabular-nums">
+                    {i + 1}
+                  </span>
                   <span className="min-w-0">
                     <span className="block truncate">{you ? `${businessName} (you)` : r.name}</span>
-                    {r.address && !you && <span className="text-ink-muted block truncate text-xs font-normal">{r.address}</span>}
+                    {r.address && !you && (
+                      <span className="text-ink-muted block truncate text-xs font-normal">
+                        {r.address}
+                      </span>
+                    )}
                   </span>
                 </li>
               );
@@ -112,7 +133,9 @@ export function GridView({
           <p className="text-ink-muted mt-2 text-sm">No results were returned here.</p>
         )}
         {chosen?.rank && chosen.rank > 10 && (
-          <p className="text-ink-muted mt-2 text-sm">Showing the top 10. You&apos;re further down at #{chosen.rank}.</p>
+          <p className="text-ink-muted mt-2 text-sm">
+            Showing the top 10. You&apos;re further down at #{chosen.rank}.
+          </p>
         )}
       </div>
     </div>

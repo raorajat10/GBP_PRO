@@ -17,8 +17,12 @@ const keywordSchema = z.object({
     .trim()
     .min(2, "Type what customers search for, e.g. solar company in jaipur.")
     .max(80, "Keep it under 80 characters."),
-  gridSize: z.coerce.number().refine((n) => (GRID_SIZES as readonly number[]).includes(n), "Pick a grid size."),
-  radiusKm: z.coerce.number().refine((n) => (RADIUS_CHOICES as readonly number[]).includes(n), "Pick a distance."),
+  gridSize: z.coerce
+    .number()
+    .refine((n) => (GRID_SIZES as readonly number[]).includes(n), "Pick a grid size."),
+  radiusKm: z.coerce
+    .number()
+    .refine((n) => (RADIUS_CHOICES as readonly number[]).includes(n), "Pick a distance."),
 });
 
 export async function addKeywordAction(_: OwnerFormState, fd: FormData): Promise<OwnerFormState> {

@@ -38,11 +38,17 @@ async function Settings() {
           notifyEmail={profile?.notify_email ?? true}
         />
       </Panel>
-      <Panel title="Your businesses" description="Businesses this login can see. Our team adds or removes them.">
+      <Panel
+        title="Your businesses"
+        description="Businesses this login can see. Our team adds or removes them."
+      >
         {businesses.length ? (
           <ul className="divide-line flex flex-col divide-y">
             {businesses.map((b) => (
-              <li key={b.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+              <li
+                key={b.id}
+                className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+              >
                 <span className="font-medium">{b.name}</span>
                 <Pill tone={b.status === "active" ? "success" : "muted"}>
                   {b.status === "active" ? "Active" : "Paused"}

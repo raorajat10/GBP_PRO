@@ -58,7 +58,9 @@ export function PosterBuilder({
               <label
                 key={s.key}
                 className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
-                  scheme.key === s.key ? "border-primary bg-primary-soft font-semibold" : "border-line"
+                  scheme.key === s.key
+                    ? "border-primary bg-primary-soft font-semibold"
+                    : "border-line"
                 }`}
               >
                 <input
@@ -68,7 +70,11 @@ export function PosterBuilder({
                   checked={scheme.key === s.key}
                   onChange={() => setScheme(s)}
                 />
-                <span className="border-line size-4 rounded-full border" style={{ background: s.bg }} aria-hidden="true" />
+                <span
+                  className="border-line size-4 rounded-full border"
+                  style={{ background: s.bg }}
+                  aria-hidden="true"
+                />
                 {s.label}
               </label>
             ))}
@@ -91,19 +97,29 @@ export function PosterBuilder({
           </a>
         </div>
         <p className="text-ink-muted text-sm">
-          Tip: print it at A5 or A4 and put it at your counter, on invoices, or hand it over after a job.
+          Tip: print it at A5 or A4 and put it at your counter, on invoices, or hand it over after a
+          job.
         </p>
       </div>
 
       <div
         className="mx-auto flex aspect-[3/4] w-full max-w-sm flex-col items-center justify-between rounded-2xl p-8 text-center print:max-w-none print:rounded-none"
-        style={{ background: scheme.bg, color: scheme.ink, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
+        style={{
+          background: scheme.bg,
+          color: scheme.ink,
+          printColorAdjust: "exact",
+          WebkitPrintColorAdjust: "exact",
+        }}
         aria-label="Poster preview"
       >
         <div>
           <p className="text-lg font-semibold opacity-90">{businessName}</p>
           <p className="mt-3 text-3xl leading-tight font-bold">{title || " "}</p>
-          <p className="mt-1 text-2xl tracking-widest" style={{ color: scheme.accent }} aria-hidden="true">
+          <p
+            className="mt-1 text-2xl tracking-widest"
+            style={{ color: scheme.accent }}
+            aria-hidden="true"
+          >
             ★★★★★
           </p>
         </div>

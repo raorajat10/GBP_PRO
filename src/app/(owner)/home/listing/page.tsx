@@ -52,7 +52,12 @@ async function Listing() {
   const p = snapshot.profile;
   const link = mapsLink(p);
   const address = p.address
-    ? [...p.address.addressLines, p.address.locality, p.address.administrativeArea, p.address.postalCode]
+    ? [
+        ...p.address.addressLines,
+        p.address.locality,
+        p.address.administrativeArea,
+        p.address.postalCode,
+      ]
         .filter(Boolean)
         .join(", ")
     : null;
@@ -65,7 +70,11 @@ async function Listing() {
             <p className="text-xl font-bold">{p.title}</p>
             {address && <p className="text-ink-muted text-sm">{address}</p>}
             <div className="mt-2 flex flex-wrap gap-2">
-              {p.verified ? <Pill tone="success">Verified on Google</Pill> : <Pill tone="accent">Not verified yet</Pill>}
+              {p.verified ? (
+                <Pill tone="success">Verified on Google</Pill>
+              ) : (
+                <Pill tone="accent">Not verified yet</Pill>
+              )}
               {p.primaryCategory && <Pill tone="primary">{p.primaryCategory.displayName}</Pill>}
             </div>
           </div>
@@ -98,7 +107,12 @@ async function Listing() {
             <Row label="Phone">{p.phone ?? <Missing />}</Row>
             <Row label="Website">
               {p.websiteUri ? (
-                <a href={p.websiteUri} target="_blank" rel="noopener noreferrer" className="text-primary break-all hover:underline">
+                <a
+                  href={p.websiteUri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary break-all hover:underline"
+                >
                   {p.websiteUri.replace(/^https?:\/\//, "")}
                 </a>
               ) : (
@@ -127,7 +141,9 @@ async function Listing() {
               })}
             </dl>
           ) : (
-            <p className="text-ink-muted text-sm">No opening hours on Google yet. Ask us to add them.</p>
+            <p className="text-ink-muted text-sm">
+              No opening hours on Google yet. Ask us to add them.
+            </p>
           )}
           {p.specialHours.length > 0 && (
             <div className="border-line border-t pt-3 text-sm">
@@ -143,15 +159,25 @@ async function Listing() {
           )}
         </Panel>
 
-        <Panel title="About your business" description="The description on your profile" actions={<ChangeRequest area="info" label="Ask for a new description" />}>
+        <Panel
+          title="About your business"
+          description="The description on your profile"
+          actions={<ChangeRequest area="info" label="Ask for a new description" />}
+        >
           {p.description ? (
             <p className="text-sm leading-relaxed whitespace-pre-line">{p.description}</p>
           ) : (
-            <p className="text-ink-muted text-sm">No description yet. Our team can write one for you.</p>
+            <p className="text-ink-muted text-sm">
+              No description yet. Our team can write one for you.
+            </p>
           )}
         </Panel>
 
-        <Panel title="Categories" description="How Google decides which searches you appear in" actions={<ChangeRequest area="categories" />}>
+        <Panel
+          title="Categories"
+          description="How Google decides which searches you appear in"
+          actions={<ChangeRequest area="categories" />}
+        >
           <div className="flex flex-col gap-3 text-sm">
             <div>
               <p className="text-ink-muted">Main category</p>

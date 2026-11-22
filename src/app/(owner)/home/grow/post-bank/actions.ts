@@ -51,13 +51,15 @@ export async function addToPostBank(_: OwnerFormState, fd: FormData): Promise<Ow
     return { message: "Couldn't save the photo. Try again." };
   }
 
-  const { error } = await createSupabaseAdminClient().from("post_bank_items").insert({
-    client_id: business.id,
-    media_asset_id: mediaId,
-    caption: parsed.data.caption,
-    wanted_on: parsed.data.wantedOn || null,
-    created_by: user.id,
-  });
+  const { error } = await createSupabaseAdminClient()
+    .from("post_bank_items")
+    .insert({
+      client_id: business.id,
+      media_asset_id: mediaId,
+      caption: parsed.data.caption,
+      wanted_on: parsed.data.wantedOn || null,
+      created_by: user.id,
+    });
   if (error) return { message: "Couldn't save the photo. Try again." };
   refresh();
   return { ok: true, message: "Sent to our team." };

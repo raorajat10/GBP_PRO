@@ -31,7 +31,9 @@ async function Services() {
   return (
     <>
       <Panel
-        title={services.length === 1 ? "1 service on Google" : `${services.length} services on Google`}
+        title={
+          services.length === 1 ? "1 service on Google" : `${services.length} services on Google`
+        }
         actions={
           <ChangeRequest
             area="services"

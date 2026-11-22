@@ -12,7 +12,10 @@ export const metadata: Metadata = { title: "Help & support" };
 export default function SupportPage() {
   return (
     <>
-      <PageHeader title="Help & support" description="Ask our team anything. We reply here and on WhatsApp." />
+      <PageHeader
+        title="Help & support"
+        description="Ask our team anything. We reply here and on WhatsApp."
+      />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Ask our team">
           <TicketForm />
@@ -66,7 +69,9 @@ async function Tickets() {
                 <p className="text-ink-muted text-sm whitespace-pre-line">{t.description}</p>
                 {t.team_reply && (
                   <div className="border-primary bg-primary-soft/50 rounded-r-lg border-l-2 px-3 py-2 text-sm">
-                    <p className="text-primary text-xs font-semibold">Our team, {fmtDate(t.updated_at)}</p>
+                    <p className="text-primary text-xs font-semibold">
+                      Our team, {fmtDate(t.updated_at)}
+                    </p>
                     <p className="mt-0.5 whitespace-pre-line">{t.team_reply}</p>
                   </div>
                 )}

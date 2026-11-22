@@ -61,7 +61,11 @@ async function Qr() {
           </div>
         </div>
       </Panel>
-      <Panel title="Poster" description="Change the words and colours, then print." className="print:border-0 print:p-0">
+      <Panel
+        title="Poster"
+        description="Change the words and colours, then print."
+        className="print:border-0 print:p-0"
+      >
         <PosterBuilder businessName={business.name} qrSvg={svg} pngDataUrl={png} />
       </Panel>
     </>

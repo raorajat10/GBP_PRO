@@ -17,8 +17,7 @@ export function AttributeForm({
     requestAttributeChange,
     {},
   );
-  const changed =
-    on.size !== current.length || current.some((k) => !on.has(k));
+  const changed = on.size !== current.length || current.some((k) => !on.has(k));
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -36,7 +35,10 @@ export function AttributeForm({
               {g.items.map((item) => {
                 const checked = on.has(item.key);
                 return (
-                  <li key={item.key} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <li
+                    key={item.key}
+                    className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                  >
                     <span className="text-sm">{item.label}</span>
                     <button
                       type="button"

@@ -8,7 +8,15 @@ import { ListSkeleton } from "@/components/skeleton";
 import { scoreBand } from "@/components/score-badge";
 import { ScoreGauge } from "@/components/score-gauge";
 import { BreakdownRow } from "@/components/owner/breakdown-row";
-import { Empty, fmtDate, NoBusiness, NoProfile, PageHeader, Panel, Pill } from "@/components/owner/ui";
+import {
+  Empty,
+  fmtDate,
+  NoBusiness,
+  NoProfile,
+  PageHeader,
+  Panel,
+  Pill,
+} from "@/components/owner/ui";
 import { RecalculateButton } from "./recalculate-button";
 
 export const metadata: Metadata = { title: "Profile score" };
@@ -43,8 +51,20 @@ async function Score() {
       actions={actions}
     />
   );
-  if (!business) return (<>{header()}<NoBusiness /></>);
-  if (!location) return (<>{header()}<NoProfile what="Your profile score" /></>);
+  if (!business)
+    return (
+      <>
+        {header()}
+        <NoBusiness />
+      </>
+    );
+  if (!location)
+    return (
+      <>
+        {header()}
+        <NoProfile what="Your profile score" />
+      </>
+    );
   const audit = await getLatestAudit(location.id);
   if (!audit) {
     return (
@@ -83,10 +103,14 @@ async function Score() {
         <Panel title="Your score" description={`Checked ${fmtDate(audit.createdAt)}`}>
           <div className="flex flex-col items-center gap-2">
             <ScoreGauge score={audit.score} />
-            <p className={`font-semibold ${scoreBand(audit.score).text}`}>{scoreBand(audit.score).label}</p>
+            <p className={`font-semibold ${scoreBand(audit.score).text}`}>
+              {scoreBand(audit.score).label}
+            </p>
             {change && (
               <p className="text-ink-muted text-sm">
-                <span aria-hidden="true">{change.delta > 0 ? "▲ " : change.delta < 0 ? "▼ " : ""}</span>
+                <span aria-hidden="true">
+                  {change.delta > 0 ? "▲ " : change.delta < 0 ? "▼ " : ""}
+                </span>
                 {change.label}
               </p>
             )}
@@ -126,7 +150,9 @@ async function Score() {
                   <p className="font-semibold">{i.title}</p>
                   <div className="flex items-center gap-2">
                     <Pill tone={STATUS[i.status].tone}>{STATUS[i.status].label}</Pill>
-                    <span className="text-ink-muted text-sm tabular-nums">+{i.pointsLost} points possible</span>
+                    <span className="text-ink-muted text-sm tabular-nums">
+                      +{i.pointsLost} points possible
+                    </span>
                   </div>
                 </div>
                 <p className="text-ink-muted mt-1 text-sm">{i.facts}</p>
@@ -135,7 +161,9 @@ async function Score() {
             ))}
           </ol>
         ) : (
-          <Empty>Every check passes. Our team keeps it that way with regular posts and replies.</Empty>
+          <Empty>
+            Every check passes. Our team keeps it that way with regular posts and replies.
+          </Empty>
         )}
       </Panel>
 

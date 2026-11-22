@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { brand } from "@/config/brand";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
+import { ThemeToggle } from "./theme-toggle";
 
 /** Static header shell; the user-specific part streams in behind Suspense. */
 export function AppHeader() {
@@ -56,6 +57,7 @@ async function UserMenu() {
             </span>
           )}
         </span>
+        <ThemeToggle />
         <form action={signOut}>
           <button
             type="submit"

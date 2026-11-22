@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Mukta } from "next/font/google";
 import { brand } from "@/config/brand";
+import { THEME_INIT_SCRIPT } from "@/components/theme-script";
 import "./globals.css";
 
 // Mukta covers Latin + Devanagari, so English and Hindi UI share one typeface.
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${mukta.variable} h-full antialiased`}>
+    // suppressHydrationWarning: the theme script may set data-theme before React hydrates.
+    <html lang="en-IN" className={`${mukta.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

@@ -1,10 +1,28 @@
 /** Profile audit score, 0–100. Bands are shared by the client page, dashboard and owner view. */
 export function scoreBand(score: number) {
   if (score >= 80)
-    return { label: "Good", text: "text-success", ring: "border-success", bar: "bg-success" };
+    return {
+      label: "Good",
+      text: "text-success",
+      ring: "border-success",
+      bar: "bg-success",
+      stroke: "stroke-success",
+    };
   if (score >= 50)
-    return { label: "Fair", text: "text-ink", ring: "border-accent", bar: "bg-accent" };
-  return { label: "Needs work", text: "text-danger", ring: "border-danger", bar: "bg-danger" };
+    return {
+      label: "Fair",
+      text: "text-ink",
+      ring: "border-accent",
+      bar: "bg-accent",
+      stroke: "stroke-accent",
+    };
+  return {
+    label: "Needs work",
+    text: "text-danger",
+    ring: "border-danger",
+    bar: "bg-danger",
+    stroke: "stroke-danger",
+  };
 }
 
 export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" | "lg" }) {

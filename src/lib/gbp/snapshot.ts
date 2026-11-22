@@ -29,6 +29,8 @@ export interface LocationSnapshot {
     replyRateLast90Days: number | null; // 0..1
     medianReplyHoursLast90Days: number | null;
     latest: string | null;
+    /** Newest few reviews for the owner dashboard. Missing on snapshots taken before it existed. */
+    recent?: RecentReview[];
   };
   metrics: {
     days: number; // how many days of data the totals cover
@@ -41,6 +43,17 @@ export interface LocationSnapshot {
   };
   syncedAt: string;
 }
+
+export interface RecentReview {
+  reviewer: string;
+  starRating: 1 | 2 | 3 | 4 | 5;
+  comment: string | null;
+  createTime: string;
+  replied: boolean;
+}
+
+/** How many of the newest reviews a snapshot keeps. */
+export const RECENT_REVIEWS_KEPT = 5;
 
 const DAY = 86_400_000;
 const latestOf = (times: string[]) =>
@@ -103,6 +116,16 @@ export function summarizeLocation(input: {
         : null,
       medianReplyHoursLast90Days: median(replyHours),
       latest: latestOf(reviews.map((r) => r.createTime)),
+      recent: [...reviews]
+        .sort((a, b) => Date.parse(b.createTime) - Date.parse(a.createTime))
+        .slice(0, RECENT_REVIEWS_KEPT)
+        .map((r) => ({
+          reviewer: r.reviewer,
+          starRating: r.starRating,
+          comment: r.comment,
+          createTime: r.createTime,
+          replied: Boolean(r.reply),
+        })),
     },
     metrics: {
       days: metrics.length,

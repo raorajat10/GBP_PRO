@@ -74,6 +74,28 @@ describe("summarizeLocation", () => {
     expect(s.reviews.medianReplyHoursLast90Days).toBe(7); // median of 4h and 10h
   });
 
+  it("keeps the newest reviews, newest first, with whether each was answered", () => {
+    expect(s.reviews.recent?.map((r) => [r.createTime, r.starRating, r.replied])).toEqual([
+      [daysAgo(10), 5, true],
+      [daysAgo(20), 4, true],
+      [daysAgo(30), 2, false],
+      [daysAgo(200), 5, true],
+    ]);
+  });
+
+  it("keeps at most five recent reviews", () => {
+    const many = summarizeLocation({
+      profile,
+      now,
+      media: [],
+      posts: [],
+      metrics: [],
+      reviews: [1, 2, 3, 4, 5, 6, 7].map((d) => review(d, 5)),
+    });
+    expect(many.reviews.recent).toHaveLength(5);
+    expect(many.reviews.recent?.[0].createTime).toBe(daysAgo(1));
+  });
+
   it("totals metrics and records the covered dates", () => {
     expect(s.metrics).toEqual({
       days: 2,

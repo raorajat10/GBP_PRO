@@ -32,5 +32,8 @@ export default defineConfig({
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    // Tests use the sample Google and sample grid ranking, even if this computer's dev
+    // settings (.env.development.local) point at real Google.
+    env: { GBP_PROVIDER: "mock", RANK_PROVIDER: "mock" },
   },
 });

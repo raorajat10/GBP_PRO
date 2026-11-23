@@ -1,6 +1,8 @@
 import "server-only";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit/service";
+import { decryptToken, encryptToken, parseKey } from "@/lib/crypto/tokens";
+import { serverEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -19,9 +21,25 @@ type ConnectionRow = Database["public"]["Tables"]["gbp_connections"]["Row"];
 
 const dbMode = (mode: ConnectMode) => (mode === "agency" ? "agency_manager" : "owner_oauth");
 
+const tokenKey = () => parseKey(serverEnv().TOKEN_ENCRYPTION_KEY);
+
+/** Sample connections have no token; real ones store it encrypted (src/lib/crypto/tokens.ts). */
 function credsOf(conn: ConnectionRow): GbpCredentials {
-  // Real refresh tokens are stored encrypted and decrypted here once M13 adds them.
-  return { accountName: conn.google_account_name, refreshToken: null };
+  return {
+    accountName: conn.google_account_name,
+    refreshToken: conn.refresh_token_encrypted
+      ? decryptToken(conn.refresh_token_encrypted, tokenKey())
+      : null,
+  };
+}
+
+/** Google said our access is gone: flag the connection so the team sees "reconnect". */
+async function flagConnection(connectionId: string, e: unknown) {
+  if (!(e instanceof GbpError) || e.kind !== "auth") return;
+  await createSupabaseAdminClient()
+    .from("gbp_connections")
+    .update({ status: "error", last_error: e.message })
+    .eq("id", connectionId);
 }
 
 /** True if the signed-in user is admin, or the manager assigned to this client (row-level security decides). */
@@ -63,8 +81,12 @@ export async function saveConnection(input: {
   accountName: string;
   label: string;
   userId: string | null; // null when the owner connected through an invite link
+  refreshToken?: string | null; // real Google connections only; stored encrypted
 }): Promise<ConnectionRow> {
   const admin = createSupabaseAdminClient();
+  if (input.provider === "google" && !input.refreshToken) {
+    throw new GbpError("Google didn't give us lasting access. Connect again.", "auth");
+  }
   const { data, error } = await admin
     .from("gbp_connections")
     .upsert(
@@ -74,7 +96,9 @@ export async function saveConnection(input: {
         client_id: input.clientId,
         google_account_name: input.accountName,
         google_account_label: input.label,
-        refresh_token_encrypted: null,
+        refresh_token_encrypted: input.refreshToken
+          ? encryptToken(input.refreshToken, tokenKey())
+          : null,
         status: "connected",
         last_error: null,
         connected_by: input.userId,
@@ -158,12 +182,22 @@ export async function linkLocation(input: {
   }
 
   const provider = getGbpProvider(conn.provider as GbpProviderKind);
-  // Reading the profile through the connection also proves the account can manage it.
-  const { snapshot, reviews, metrics } = await collectProfile(
-    provider,
-    credsOf(conn),
-    input.locationName,
-  );
+  // The profile must be one this connection manages; that also tells us which Google
+  // account (personal or a location group) it sits in, which some API calls need.
+  const base = credsOf(conn);
+  const listed = (await provider.listLocations(base)).find((l) => l.name === input.locationName);
+  if (!listed) {
+    throw new GbpError("That profile isn't managed by this Google account.", "not_found");
+  }
+  const creds = { ...base, accountName: listed.accountName };
+  let collected;
+  try {
+    collected = await collectProfile(provider, creds, input.locationName);
+  } catch (e) {
+    await flagConnection(conn.id, e);
+    throw e;
+  }
+  const { snapshot, reviews, metrics } = collected;
   const p = snapshot.profile;
 
   const { data, error } = await admin
@@ -171,7 +205,7 @@ export async function linkLocation(input: {
     .insert({
       client_id: input.clientId,
       connection_id: conn.id,
-      gbp_account_name: conn.google_account_name,
+      gbp_account_name: listed.accountName,
       gbp_location_name: p.name,
       title: p.title,
       place_id: p.placeId,
@@ -209,17 +243,24 @@ export async function syncLocation(locationId: string, userId?: string | null): 
   const admin = createSupabaseAdminClient();
   const { data: loc } = await admin
     .from("locations")
-    .select("id, client_id, gbp_location_name, connection:gbp_connections(*)")
+    .select("id, client_id, gbp_account_name, gbp_location_name, connection:gbp_connections(*)")
     .eq("id", locationId)
     .single();
   if (!loc?.connection) throw new GbpError("Linked profile not found.", "not_found");
   const conn = loc.connection as ConnectionRow;
 
-  const { snapshot, reviews, metrics } = await collectProfile(
-    getGbpProvider(conn.provider as GbpProviderKind),
-    credsOf(conn),
-    loc.gbp_location_name,
-  );
+  let collected;
+  try {
+    collected = await collectProfile(
+      getGbpProvider(conn.provider as GbpProviderKind),
+      { ...credsOf(conn), accountName: loc.gbp_account_name },
+      loc.gbp_location_name,
+    );
+  } catch (e) {
+    await flagConnection(conn.id, e);
+    throw e;
+  }
+  const { snapshot, reviews, metrics } = collected;
   const p = snapshot.profile;
   const { error } = await admin
     .from("locations")

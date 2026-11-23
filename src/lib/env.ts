@@ -36,6 +36,11 @@ const serverEnvSchema = z.object({
   // Google OAuth client (Google Cloud → Google Auth Platform → Clients). Secret: server only.
   GOOGLE_CLIENT_ID: z.string().endsWith(".apps.googleusercontent.com").optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(10).optional(),
+  // Encrypts stored Google refresh tokens (32 random bytes, base64). Needed once
+  // GBP_PROVIDER=google. Generate with:
+  //   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+  // Use the SAME value everywhere (Vercel + local), or stored tokens can't be read.
+  TOKEN_ENCRYPTION_KEY: z.string().min(40).optional(),
 
   // Email through Resend (owner connect invites). EMAIL_FROM must be on the verified domain.
   RESEND_API_KEY: z.string().min(1).optional(),

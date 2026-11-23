@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
         accountName: account.accountName,
         label: account.label,
         userId: null,
+        refreshToken: account.refreshToken,
       });
       await recordInviteConnection(intent.inviteId, conn.id);
       const locations = await provider.listLocations({
@@ -108,6 +109,7 @@ export async function GET(request: NextRequest) {
       accountName: account.accountName,
       label: account.label,
       userId: user.id,
+      refreshToken: account.refreshToken,
     });
 
     if (intent.mode === "owner") {

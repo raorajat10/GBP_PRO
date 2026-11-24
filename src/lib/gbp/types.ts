@@ -111,6 +111,24 @@ export interface GbpProvider {
     locationName: string,
     range: { start: string; end: string },
   ): Promise<DailyMetrics[]>;
+  /** Publish a post on the profile. Only ever called for posts the owner approved. */
+  createLocalPost(
+    creds: GbpCredentials,
+    locationName: string,
+    post: NewLocalPost,
+  ): Promise<{ name: string; state: GbpLocalPost["state"] }>;
+}
+
+export type PostCtaType = "CALL" | "LEARN_MORE" | "BOOK" | "ORDER" | "SHOP" | "SIGN_UP";
+
+export interface NewLocalPost {
+  summary: string;
+  /** BCP-47, e.g. "en" or "hi". */
+  languageCode: string;
+  /** CALL uses the profile's phone; the others need an https URL. */
+  cta: { type: PostCtaType; url: string | null } | null;
+  /** A short-lived public link Google fetches the photo from, or null for text only. */
+  photoUrl: string | null;
 }
 
 export class GbpError extends Error {

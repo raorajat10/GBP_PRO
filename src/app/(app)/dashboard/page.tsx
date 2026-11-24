@@ -110,6 +110,11 @@ async function ClientList() {
                       Changes requested
                     </span>
                   )}
+                  {c.posts.some((p) => p.status === "failed") && (
+                    <span className="bg-danger/10 text-danger rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                      Publish failed
+                    </span>
+                  )}
                   {c.posts.some((p) => p.status === "expired") && (
                     <span className="bg-danger/10 text-danger rounded-full px-2.5 py-0.5 text-xs font-semibold">
                       Approval expired

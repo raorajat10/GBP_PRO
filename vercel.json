@@ -2,5 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "regions": ["bom1"],
-  "crons": [{ "path": "/api/cron/approvals", "schedule": "30 4 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/approvals",
+      "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/publish",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

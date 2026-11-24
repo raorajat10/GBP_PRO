@@ -9,7 +9,13 @@ import type { Database, Json } from "@/lib/supabase/database.types";
 import { getGbpProvider } from "./provider";
 import { saveProfileHistory } from "./history";
 import { collectProfile } from "./snapshot";
-import { GbpError, type ConnectMode, type GbpCredentials, type GbpProviderKind } from "./types";
+import {
+  GbpError,
+  type ConnectMode,
+  type GbpCredentials,
+  type GbpProvider,
+  type GbpProviderKind,
+} from "./types";
 
 /**
  * Server-only Google Business Profile operations. These use the secret-key client (the
@@ -236,6 +242,34 @@ export async function linkLocation(input: {
     userId: input.userId,
   });
   return { locationId: data.id };
+}
+
+/**
+ * What's needed to act on a linked profile (publish a post, reply to a review): its
+ * provider, decrypted credentials for the profile's own Google account, and its name.
+ */
+export async function locationTarget(locationId: string): Promise<{
+  provider: GbpProvider;
+  creds: GbpCredentials;
+  locationName: string;
+  onAuthError: (e: unknown) => Promise<void>;
+}> {
+  const { data: loc } = await createSupabaseAdminClient()
+    .from("locations")
+    .select("gbp_account_name, gbp_location_name, connection:gbp_connections(*)")
+    .eq("id", locationId)
+    .single();
+  if (!loc?.connection) throw new GbpError("Linked profile not found.", "not_found");
+  const conn = loc.connection as ConnectionRow;
+  if (conn.status !== "connected") {
+    throw new GbpError("The Google connection for this profile needs reconnecting.", "auth");
+  }
+  return {
+    provider: getGbpProvider(conn.provider as GbpProviderKind),
+    creds: { ...credsOf(conn), accountName: loc.gbp_account_name },
+    locationName: loc.gbp_location_name,
+    onAuthError: (e) => flagConnection(conn.id, e),
+  };
 }
 
 /** Re-read a linked profile from Google and refresh its snapshot. */

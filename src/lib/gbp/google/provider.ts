@@ -10,6 +10,7 @@ import {
   type GbpMedia,
   type GbpProvider,
   type GbpReview,
+  type NewLocalPost,
 } from "../types";
 import {
   classifyGoogleError,
@@ -220,6 +221,55 @@ export class GoogleGbpProvider implements GbpProvider {
         token,
       )) as RawMultiDailyMetrics;
       return toDailyMetrics(raw);
+    } catch (e) {
+      throw toGbpError(e);
+    }
+  }
+
+  async createLocalPost(
+    creds: GbpCredentials,
+    locationName: string,
+    post: NewLocalPost,
+  ): Promise<{ name: string; state: GbpLocalPost["state"] }> {
+    try {
+      const token = await this.accessToken(creds);
+      const body = {
+        languageCode: post.languageCode,
+        summary: post.summary,
+        topicType: "STANDARD",
+        ...(post.cta
+          ? {
+              callToAction:
+                post.cta.type === "CALL"
+                  ? { actionType: "CALL" }
+                  : { actionType: post.cta.type, url: post.cta.url },
+            }
+          : {}),
+        ...(post.photoUrl ? { media: [{ mediaFormat: "PHOTO", sourceUrl: post.photoUrl }] } : {}),
+      };
+      const res = await this.fetchImpl(
+        `${V4}/${v4LocationPath(creds.accountName, locationName)}/localPosts`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          cache: "no-store",
+          signal: AbortSignal.timeout(30_000),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as RawLocalPost & {
+        error?: { message?: string };
+      };
+      if (res.status === 400) {
+        // Google says what it rejected (for example a phone number in the text): pass it on.
+        throw new GbpError(
+          `Google refused the post: ${data.error?.message ?? "invalid post"}`,
+          "unknown",
+        );
+      }
+      if (!res.ok) throw classifyGoogleError(res.status, data);
+      const state = data.state === "LIVE" || data.state === "REJECTED" ? data.state : "PROCESSING";
+      return { name: data.name, state };
     } catch (e) {
       throw toGbpError(e);
     }

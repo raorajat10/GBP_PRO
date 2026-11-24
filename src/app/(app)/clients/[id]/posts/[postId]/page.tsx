@@ -14,6 +14,7 @@ import { PostStatusChip, SampleBadge } from "@/components/post-status-chip";
 import { deletePostAction, regenerateDraftsAction, savePostAction } from "../../../post-actions";
 import { PostEditor } from "./post-editor";
 import { ApprovalPanel } from "./approval-panel";
+import { PublishPanel } from "./publish-panel";
 
 export const metadata: Metadata = { title: "Edit post" };
 
@@ -74,6 +75,7 @@ async function Post({ clientId, postId }: { clientId: string; postId: string }) 
       />
 
       <ApprovalPanel clientId={clientId} postId={postId} status={post.status} />
+      <PublishPanel clientId={clientId} postId={postId} />
 
       {editable && (
         <section className="border-line bg-surface flex flex-col gap-4 rounded-2xl border p-5">

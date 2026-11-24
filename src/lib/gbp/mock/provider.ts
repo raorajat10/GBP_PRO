@@ -10,6 +10,7 @@ import {
   type GbpProvider,
   type GbpReview,
   type MediaCategory,
+  type NewLocalPost,
 } from "../types";
 import {
   ARCHETYPES,
@@ -197,6 +198,20 @@ export class MockGbpProvider implements GbpProvider {
       });
     }
     return out;
+  }
+
+  /** Sample "publish": checks the profile exists and the post is sendable, publishes nothing. */
+  async createLocalPost(
+    creds: GbpCredentials,
+    locationName: string,
+    post: NewLocalPost,
+  ): Promise<{ name: string; state: GbpLocalPost["state"] }> {
+    this.find(creds, locationName);
+    if (!post.summary.trim()) throw new GbpError("The post has no text.");
+    if (post.cta && post.cta.type !== "CALL" && !post.cta.url?.startsWith("https://")) {
+      throw new GbpError("This button needs an https link.");
+    }
+    return { name: `${locationName}/localPosts/sample-${crypto.randomUUID()}`, state: "LIVE" };
   }
 
   // ───────────── helpers ─────────────

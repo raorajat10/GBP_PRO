@@ -1,7 +1,9 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { after } from "next/server";
 import { ApprovalError, respondByToken } from "@/lib/approvals/service";
+import { publishDuePosts } from "@/lib/posts/publish";
 
 export interface AnswerState {
   ok?: boolean;
@@ -29,6 +31,17 @@ export async function answerAction(
     return {
       message: e instanceof ApprovalError ? e.message : "Something went wrong. Please try again.",
     };
+  }
+  // An approved post that is already due goes to Google right away, after the owner
+  // has their answer (the response is not held up by Google).
+  if (decision === "approved") {
+    after(async () => {
+      try {
+        await publishDuePosts();
+      } catch (e) {
+        console.error("Publishing after approval failed", e);
+      }
+    });
   }
   refresh();
   return { ok: true };

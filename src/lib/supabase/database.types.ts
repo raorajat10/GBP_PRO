@@ -626,6 +626,7 @@ export type Database = {
           language: string;
           location_id: string | null;
           media_asset_id: string | null;
+          publish_attempts: number;
           published_at: string | null;
           scheduled_for: string | null;
           source_note: string;
@@ -649,6 +650,7 @@ export type Database = {
           language: string;
           location_id?: string | null;
           media_asset_id?: string | null;
+          publish_attempts?: number;
           published_at?: string | null;
           scheduled_for?: string | null;
           source_note: string;
@@ -671,6 +673,7 @@ export type Database = {
           language?: string;
           location_id?: string | null;
           media_asset_id?: string | null;
+          publish_attempts?: number;
           published_at?: string | null;
           scheduled_for?: string | null;
           source_note?: string;

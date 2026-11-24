@@ -16,3 +16,13 @@ test("health endpoint is up and runs on mock providers", async ({ request }) => 
     providers: { gbp: "mock", messaging: "mock" },
   });
 });
+
+test("scheduled jobs refuse callers without the secret", async ({ request }) => {
+  for (const job of ["approvals", "publish", "sync"]) {
+    expect((await request.get(`/api/cron/${job}`)).status(), job).toBe(401);
+    const wrong = await request.get(`/api/cron/${job}`, {
+      headers: { authorization: "Bearer not-the-secret" },
+    });
+    expect(wrong.status(), job).toBe(401);
+  }
+});

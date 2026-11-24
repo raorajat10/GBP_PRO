@@ -3,6 +3,8 @@ import { labelOf, TICKET_CATEGORIES, TICKET_PRIORITIES } from "@/lib/owner/suppo
 import { signedPhotoUrls } from "@/lib/posts/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { setChangeRequestStatus, setPostBankStatus, updateTicket } from "../owner-request-actions";
+import { addPhotoToGoogleAction } from "../listing-actions";
+import { PHOTO_CATEGORIES } from "@/lib/gbp/listing-edit";
 
 const dateFmt = new Intl.DateTimeFormat("en-IN", {
   day: "numeric",
@@ -159,6 +161,31 @@ export async function OwnerRequests({ clientId }: { clientId: string }) {
                       {b.wanted_on ? `Wants it on ${d(b.wanted_on)}` : `Sent ${d(b.created_at)}`}
                     </p>
                     {b.caption && <p className="line-clamp-3">{b.caption}</p>}
+                    <form
+                      action={addPhotoToGoogleAction}
+                      className="flex flex-wrap items-center gap-1.5"
+                    >
+                      <input type="hidden" name="clientId" value={clientId} />
+                      <input type="hidden" name="id" value={b.id} />
+                      <label className="sr-only" htmlFor={`cat-${b.id}`}>
+                        Photo type
+                      </label>
+                      <select
+                        id={`cat-${b.id}`}
+                        name="category"
+                        defaultValue="AT_WORK"
+                        className="border-line bg-surface rounded border px-1 py-0.5 text-xs"
+                      >
+                        {PHOTO_CATEGORIES.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button className={`${btn} border-primary text-primary`}>
+                        Add to Google photos
+                      </button>
+                    </form>
                     <form action={setPostBankStatus} className="flex gap-1.5">
                       <input type="hidden" name="clientId" value={clientId} />
                       <input type="hidden" name="id" value={b.id} />

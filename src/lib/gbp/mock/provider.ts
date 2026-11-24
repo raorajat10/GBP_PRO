@@ -12,6 +12,7 @@ import {
   type MediaCategory,
   type NewLocalPost,
 } from "../types";
+import type { ListingEdit } from "../listing-edit";
 import {
   ARCHETYPES,
   OWNER_ACCOUNT_PREFIX,
@@ -198,6 +199,28 @@ export class MockGbpProvider implements GbpProvider {
       });
     }
     return out;
+  }
+
+  /** Sample edit: checks the profile exists; sample data itself never changes. */
+  async updateLocation(
+    creds: GbpCredentials,
+    locationName: string,
+    edit: ListingEdit,
+  ): Promise<void> {
+    this.find(creds, locationName);
+    if (!Object.keys(edit).length) throw new GbpError("Nothing to change.");
+  }
+
+  /** Sample photo upload: checks the profile and link, stores nothing. */
+  async addPhoto(
+    creds: GbpCredentials,
+    locationName: string,
+    photo: { sourceUrl: string; category: MediaCategory },
+  ): Promise<{ name: string }> {
+    this.find(creds, locationName);
+    if (!photo.sourceUrl.startsWith("https://"))
+      throw new GbpError("The photo link must be https.");
+    return { name: `${locationName}/media/sample-${crypto.randomUUID()}` };
   }
 
   /** Sample reply: checks the review belongs to a sample profile, stores nothing at Google. */

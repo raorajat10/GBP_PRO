@@ -14,6 +14,7 @@ import { inviteOwnerAction, updateClientAction } from "../actions";
 import { GbpStatusBanner } from "@/components/gbp-status-banner";
 import { GoogleProfileSection } from "./google-profile";
 import { OwnerRequests } from "./owner-requests";
+import { EditListingSection } from "./edit-listing-section";
 import { AutoReplySection } from "./auto-reply-section";
 
 export const metadata: Metadata = { title: "Client" };
@@ -88,6 +89,7 @@ async function ClientDetail({
 
       <GbpStatusBanner status={gbpStatus} />
       <GoogleProfileSection clientId={client.id} isAdmin={isAdmin} />
+      <EditListingSection clientId={client.id} />
       <OwnerRequests clientId={client.id} />
       <AutoReplySection clientId={client.id} />
 

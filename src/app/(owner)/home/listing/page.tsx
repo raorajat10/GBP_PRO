@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import type { DayOfWeek } from "@/lib/gbp/types";
 import { getOwnerContext } from "@/lib/owner/context";
@@ -16,7 +17,7 @@ export default function ListingPage() {
     <>
       <PageHeader
         title="Business info"
-        description="What customers see on your Google profile. Ask for a change and our team updates Google for you."
+        description="What customers see on your Google profile. Edit your phone, website, description and hours yourself; for anything else, ask our team."
       />
       <Suspense fallback={<ListSkeleton rows={4} />}>
         <Listing />
@@ -101,7 +102,7 @@ async function Listing() {
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Basic information" actions={<ChangeRequest area="info" />}>
+        <Panel title="Basic information" actions={<EditLink />}>
           <dl className="divide-line flex flex-col divide-y text-sm">
             <Row label="Business name">{p.title}</Row>
             <Row label="Phone">{p.phone ?? <Missing />}</Row>
@@ -124,7 +125,7 @@ async function Listing() {
           </dl>
         </Panel>
 
-        <Panel title="Opening hours" actions={<ChangeRequest area="hours" />}>
+        <Panel title="Opening hours" actions={<EditLink />}>
           {p.regularHours.length ? (
             <dl className="divide-line flex flex-col divide-y text-sm">
               {DAYS.map((d) => {
@@ -162,7 +163,7 @@ async function Listing() {
         <Panel
           title="About your business"
           description="The description on your profile"
-          actions={<ChangeRequest area="info" label="Ask for a new description" />}
+          actions={<EditLink />}
         >
           {p.description ? (
             <p className="text-sm leading-relaxed whitespace-pre-line">{p.description}</p>
@@ -201,6 +202,14 @@ async function Listing() {
 
       <ChangeRequestList clientId={business.id} areas={["info", "hours", "categories"]} />
     </>
+  );
+}
+
+function EditLink() {
+  return (
+    <Link href="/home/listing/edit" className="text-primary text-sm font-semibold hover:underline">
+      Edit
+    </Link>
   );
 }
 

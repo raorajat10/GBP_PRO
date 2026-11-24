@@ -434,7 +434,7 @@ test("business info shows the profile and sends a change request", async ({ page
     page.getByText("12 Tonk Road, Sitapura, Jaipur, Rajasthan, 302022").first(),
   ).toBeVisible();
   await expect(page.getByText("Solar contractor")).toBeVisible();
-  const basic = page.getByRole("region", { name: "Basic information" });
+  const basic = page.getByRole("region", { name: "Categories" });
   await basic.getByRole("button", { name: "Ask for a change" }).click();
   await basic.getByLabel("Your request").fill(`${tag} New phone number is 98290 99999`);
   await basic.getByRole("button", { name: "Send to our team" }).click();

@@ -49,6 +49,15 @@ function fakeGoogle(opts: { refreshFails?: boolean } = {}) {
       return json({ accounts: [{ name: "accounts/111", type: "PERSONAL", accountName: "Owner" }] });
     }
     if (url.pathname === "/v1/accounts/111/locations") return json({ locations: [LOCATION] });
+    if (url.pathname === "/v1/locations/222" && init?.method === "PATCH") {
+      const body = JSON.parse(String(init.body)) as { websiteUri?: string };
+      return body.websiteUri === "https://bad.example"
+        ? json({ error: { message: "Invalid website URI." } }, 400)
+        : json({ ...LOCATION, ...body });
+    }
+    if (url.pathname === "/v4/accounts/111/locations/222/media" && init?.method === "POST") {
+      return json({ name: "accounts/111/locations/222/media/m9" });
+    }
     if (url.pathname === "/v1/locations/222") return json(LOCATION);
     if (url.pathname === "/v1/locations/222/attributes") return json({ attributes: [] });
     if (url.pathname === "/v4/accounts/111/locations/222/reviews") {
@@ -205,6 +214,31 @@ describe("google-specific behaviour", () => {
       p.replyToReview(creds, "accounts/111/locations/222/reviews/../x", "Hi"),
     ).rejects.toMatchObject({ kind: "not_found" });
     expect(g.calls.some((c) => c.includes("/reply"))).toBe(false);
+  });
+
+  it("edits the live profile with an update mask, and passes on Google's refusal", async () => {
+    const g = fakeGoogle();
+    const p = new GoogleGbpProvider(cfg, g.fetchImpl);
+    const creds = { accountName: "accounts/111", refreshToken: "rt-edit" };
+    await p.updateLocation(creds, "locations/222", {
+      phone: "+91 98290 12345",
+      hours: [{ day: "MONDAY", open: "09:00", close: "18:00" }],
+    });
+    const patch = new URL(g.calls.find((c) => c.includes("updateMask"))!);
+    expect(patch.searchParams.get("updateMask")).toBe("phoneNumbers.primaryPhone,regularHours");
+    await expect(
+      p.updateLocation(creds, "locations/222", { website: "https://bad.example" }),
+    ).rejects.toThrow(/Google refused the change: Invalid website URI/);
+  });
+
+  it("adds a photo to the profile from a link", async () => {
+    const p = new GoogleGbpProvider(cfg, fakeGoogle().fetchImpl);
+    expect(
+      await p.addPhoto({ accountName: "accounts/111", refreshToken: "rt-photo" }, "locations/222", {
+        sourceUrl: "https://example.supabase.co/signed/photo.jpg",
+        category: "AT_WORK",
+      }),
+    ).toEqual({ name: "accounts/111/locations/222/media/m9" });
   });
 
   it("refuses malformed location names before calling Google", async () => {

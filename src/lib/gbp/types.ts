@@ -3,6 +3,7 @@
  * resource names (accounts/…, locations/…) but keep only what the product uses, so the
  * mock and the real Google implementation return exactly the same thing.
  */
+import type { ListingEdit } from "./listing-edit";
 
 export type GbpProviderKind = "mock" | "google";
 /** agency = our team's Google account (clients add us as Manager); owner = owner's own account. */
@@ -111,6 +112,14 @@ export interface GbpProvider {
     locationName: string,
     range: { start: string; end: string },
   ): Promise<DailyMetrics[]>;
+  /** Change phone, website, description and/or opening hours on the live profile. */
+  updateLocation(creds: GbpCredentials, locationName: string, edit: ListingEdit): Promise<void>;
+  /** Add a photo to the profile from a public link Google can fetch. */
+  addPhoto(
+    creds: GbpCredentials,
+    locationName: string,
+    photo: { sourceUrl: string; category: MediaCategory },
+  ): Promise<{ name: string }>;
   /** Post (or replace) the owner's public reply to a review. Returns the reply as stored. */
   replyToReview(
     creds: GbpCredentials,

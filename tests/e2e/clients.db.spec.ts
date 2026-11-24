@@ -72,6 +72,7 @@ const clients = [
 ];
 
 test("admin adds 5 clients and sees them listed", async ({ page }) => {
+  test.setTimeout(90_000); // five adds in a row through the UI
   await signInAs(page, adminEmail);
 
   for (const c of clients) {

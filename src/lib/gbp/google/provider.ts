@@ -10,8 +10,10 @@ import {
   type GbpMedia,
   type GbpProvider,
   type GbpReview,
+  type MediaCategory,
   type NewLocalPost,
 } from "../types";
+import { toGooglePatch, type ListingEdit } from "../listing-edit";
 import {
   classifyGoogleError,
   exchangeGoogleCode,
@@ -221,6 +223,72 @@ export class GoogleGbpProvider implements GbpProvider {
         token,
       )) as RawMultiDailyMetrics;
       return toDailyMetrics(raw);
+    } catch (e) {
+      throw toGbpError(e);
+    }
+  }
+
+  async updateLocation(
+    creds: GbpCredentials,
+    locationName: string,
+    edit: ListingEdit,
+  ): Promise<void> {
+    try {
+      const location = assertLocationName(locationName);
+      const { updateMask, body } = toGooglePatch(edit);
+      if (!updateMask) throw new GbpError("Nothing to change.");
+      const token = await this.accessToken(creds);
+      const res = await this.fetchImpl(
+        `${INFO}/${location}?updateMask=${encodeURIComponent(updateMask)}`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          cache: "no-store",
+          signal: AbortSignal.timeout(20_000),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      if (res.status === 400) {
+        throw new GbpError(`Google refused the change: ${data.error?.message ?? "invalid value"}`);
+      }
+      if (res.status === 404) throw new GbpError("Google couldn't find this profile.", "not_found");
+      if (!res.ok) throw classifyGoogleError(res.status, data);
+    } catch (e) {
+      throw toGbpError(e);
+    }
+  }
+
+  async addPhoto(
+    creds: GbpCredentials,
+    locationName: string,
+    photo: { sourceUrl: string; category: MediaCategory },
+  ): Promise<{ name: string }> {
+    try {
+      const token = await this.accessToken(creds);
+      const res = await this.fetchImpl(
+        `${V4}/${v4LocationPath(creds.accountName, locationName)}/media`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaFormat: "PHOTO",
+            locationAssociation: { category: photo.category },
+            sourceUrl: photo.sourceUrl,
+          }),
+          cache: "no-store",
+          signal: AbortSignal.timeout(30_000),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        name?: string;
+        error?: { message?: string };
+      };
+      if (res.status === 400) {
+        throw new GbpError(`Google refused the photo: ${data.error?.message ?? "invalid photo"}`);
+      }
+      if (!res.ok) throw classifyGoogleError(res.status, data);
+      return { name: data.name ?? "" };
     } catch (e) {
       throw toGbpError(e);
     }

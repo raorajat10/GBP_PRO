@@ -37,6 +37,7 @@ export function getMessagingProvider(): MessagingProvider {
     phoneNumberId: env.META_WA_PHONE_NUMBER_ID,
     graphVersion: env.META_GRAPH_VERSION,
     templates: { approval: env.WA_TEMPLATE_APPROVAL, reminder: env.WA_TEMPLATE_REMINDER },
+    defaultHeaderImage: new URL("/whatsapp-post-header.jpg", env.APP_URL).toString(),
   });
   return cached;
 }

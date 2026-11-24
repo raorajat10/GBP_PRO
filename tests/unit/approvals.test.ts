@@ -157,6 +157,7 @@ describe("MetaCloudWhatsApp", () => {
       phoneNumberId: "1111",
       graphVersion: "v23.0",
       templates: { approval: "post_approval_request", reminder: "approval_reminder" },
+      defaultHeaderImage: "https://app.example/whatsapp-post-header.jpg",
     },
     fakeFetch,
   );
@@ -196,6 +197,28 @@ describe("MetaCloudWhatsApp", () => {
     });
   });
 
+  it("always sends the header image Meta requires, using a standard picture for text-only posts", async () => {
+    await wa.sendApprovalRequest({
+      to: "+919829012345",
+      language: "en",
+      ownerName: "Ramesh",
+      businessName: "Sharma Battery House",
+      postPreview: "Diwali offer",
+      goLiveText: "as soon as you approve",
+      approvalLink: "https://app.example/approve/xyz",
+      photoUrl: null,
+      approvalId: "0b0e7c9e-1a2b-4c3d-8e9f-001122334455",
+    });
+    const components = (calls.at(-1)!.body.template as { components: Record<string, unknown>[] })
+      .components;
+    expect(components[0]).toEqual({
+      type: "header",
+      parameters: [
+        { type: "image", image: { link: "https://app.example/whatsapp-post-header.jpg" } },
+      ],
+    });
+  });
+
   it("explains a refused message", async () => {
     const refusing = new MetaCloudWhatsApp(
       {
@@ -203,6 +226,7 @@ describe("MetaCloudWhatsApp", () => {
         phoneNumberId: "1",
         graphVersion: "v23.0",
         templates: { approval: "a", reminder: "r" },
+        defaultHeaderImage: "https://app.example/h.jpg",
       },
       (async () =>
         new Response(JSON.stringify({ error: { message: "Template not found" } }), {

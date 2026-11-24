@@ -35,6 +35,11 @@ export class MetaCloudWhatsApp implements MessagingProvider {
       phoneNumberId: string;
       graphVersion: string;
       templates: { approval: string; reminder: string };
+      /**
+       * The approval template has an IMAGE header, which Meta requires on every send.
+       * Text-only posts use this public picture instead of their own photo.
+       */
+      defaultHeaderImage: string;
     },
     private readonly fetchImpl: typeof fetch = fetch,
   ) {}
@@ -92,9 +97,12 @@ export class MetaCloudWhatsApp implements MessagingProvider {
         name: this.cfg.templates.approval,
         language: { code: m.language },
         components: [
-          ...(m.photoUrl
-            ? [{ type: "header", parameters: [{ type: "image", image: { link: m.photoUrl } }] }]
-            : []),
+          {
+            type: "header",
+            parameters: [
+              { type: "image", image: { link: m.photoUrl ?? this.cfg.defaultHeaderImage } },
+            ],
+          },
           {
             type: "body",
             parameters: [

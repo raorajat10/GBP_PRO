@@ -200,6 +200,19 @@ export class MockGbpProvider implements GbpProvider {
     return out;
   }
 
+  /** Sample reply: checks the review belongs to a sample profile, stores nothing at Google. */
+  async replyToReview(
+    creds: GbpCredentials,
+    reviewName: string,
+    comment: string,
+  ): Promise<{ comment: string; updateTime: string }> {
+    const m = /^(locations\/[\w-]+)\/reviews\/[\w-]+$/.exec(reviewName);
+    if (!m) throw new GbpError("Review not found.", "not_found");
+    this.find(creds, m[1]);
+    if (!comment.trim()) throw new GbpError("The reply is empty.");
+    return { comment: comment.trim(), updateTime: new Date().toISOString() };
+  }
+
   /** Sample "publish": checks the profile exists and the post is sendable, publishes nothing. */
   async createLocalPost(
     creds: GbpCredentials,

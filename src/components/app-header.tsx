@@ -33,6 +33,9 @@ async function UserMenu() {
           <Link href="/dashboard" className="hover:text-primary">
             Clients
           </Link>
+          <Link href="/reviews" className="hover:text-primary">
+            Reviews
+          </Link>
           <Link href="/reply-studio" className="hover:text-primary">
             Reply studio
           </Link>

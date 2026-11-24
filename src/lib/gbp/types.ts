@@ -111,6 +111,12 @@ export interface GbpProvider {
     locationName: string,
     range: { start: string; end: string },
   ): Promise<DailyMetrics[]>;
+  /** Post (or replace) the owner's public reply to a review. Returns the reply as stored. */
+  replyToReview(
+    creds: GbpCredentials,
+    reviewName: string,
+    comment: string,
+  ): Promise<{ comment: string; updateTime: string }>;
   /** Publish a post on the profile. Only ever called for posts the owner approved. */
   createLocalPost(
     creds: GbpCredentials,

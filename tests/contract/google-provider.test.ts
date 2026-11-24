@@ -71,6 +71,15 @@ function fakeGoogle(opts: { refreshFails?: boolean } = {}) {
             nextPageToken: "p2",
           });
     }
+    if (
+      url.pathname === "/v4/accounts/111/locations/222/reviews/r1/reply" &&
+      init?.method === "PUT"
+    ) {
+      const { comment } = JSON.parse(String(init.body)) as { comment: string };
+      return comment.includes("http")
+        ? json({ error: { message: "Links aren't allowed in replies." } }, 400)
+        : json({ comment, updateTime: "2026-11-24T10:00:00Z" });
+    }
     if (url.pathname === "/v4/accounts/111/locations/222/media") {
       return json({
         mediaItems: [
@@ -169,6 +178,33 @@ describe("google-specific behaviour", () => {
       kind: "auth",
       message: expect.stringMatching(/Connect Google again/),
     });
+  });
+
+  it("posts a review reply and passes on Google's reason when it refuses", async () => {
+    const g = fakeGoogle();
+    const p = new GoogleGbpProvider(cfg, g.fetchImpl);
+    const creds = { accountName: "accounts/111", refreshToken: "rt-reply" };
+    const review = "accounts/111/locations/222/reviews/r1";
+    expect(await p.replyToReview(creds, review, "Thank you, Asha!")).toEqual({
+      comment: "Thank you, Asha!",
+      updateTime: "2026-11-24T10:00:00Z",
+    });
+    await expect(p.replyToReview(creds, review, "See http://x")).rejects.toThrow(
+      /Google refused the reply: Links aren't allowed/,
+    );
+  });
+
+  it("won't reply to reviews outside this account or with odd names", async () => {
+    const g = fakeGoogle();
+    const p = new GoogleGbpProvider(cfg, g.fetchImpl);
+    const creds = { accountName: "accounts/111", refreshToken: "rt-reply2" };
+    await expect(
+      p.replyToReview(creds, "accounts/999/locations/222/reviews/r1", "Hi"),
+    ).rejects.toMatchObject({ kind: "auth" });
+    await expect(
+      p.replyToReview(creds, "accounts/111/locations/222/reviews/../x", "Hi"),
+    ).rejects.toMatchObject({ kind: "not_found" });
+    expect(g.calls.some((c) => c.includes("/reply"))).toBe(false);
   });
 
   it("refuses malformed location names before calling Google", async () => {

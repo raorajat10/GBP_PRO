@@ -226,6 +226,46 @@ export class GoogleGbpProvider implements GbpProvider {
     }
   }
 
+  async replyToReview(
+    creds: GbpCredentials,
+    reviewName: string,
+    comment: string,
+  ): Promise<{ comment: string; updateTime: string }> {
+    try {
+      // Only well-formed review names, and only under this credential's account.
+      if (!/^accounts\/[\w-]+\/locations\/[\w-]+\/reviews\/[\w-]+$/.test(reviewName)) {
+        throw new GbpError("Review not found.", "not_found");
+      }
+      if (!reviewName.startsWith(`${creds.accountName}/`)) {
+        throw new GbpError("This review belongs to a different Google account.", "auth");
+      }
+      const token = await this.accessToken(creds);
+      const res = await this.fetchImpl(`${V4}/${reviewName}/reply`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ comment }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(20_000),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        comment?: string;
+        updateTime?: string;
+        error?: { message?: string };
+      };
+      if (res.status === 400) {
+        throw new GbpError(`Google refused the reply: ${data.error?.message ?? "invalid reply"}`);
+      }
+      if (res.status === 404) throw new GbpError("Google couldn't find this review.", "not_found");
+      if (!res.ok) throw classifyGoogleError(res.status, data);
+      return {
+        comment: data.comment ?? comment,
+        updateTime: data.updateTime ?? new Date().toISOString(),
+      };
+    } catch (e) {
+      throw toGbpError(e);
+    }
+  }
+
   async createLocalPost(
     creds: GbpCredentials,
     locationName: string,

@@ -58,4 +58,26 @@ describe("mock-specific behaviour", () => {
     const rate = (rs: typeof strong) => rs.filter((r) => r.reply).length / rs.length;
     expect(rate(strong)).toBeGreaterThan(rate(weak));
   });
+
+  it("accepts replies and posts only for its own sample profiles", async () => {
+    const p = new MockGbpProvider(now);
+    const [review] = await p.listReviews(team, "locations/9100000002");
+    expect((await p.replyToReview(team, review.name, "  Thank you!  ")).comment).toBe("Thank you!");
+    await expect(p.replyToReview(team, "locations/0/reviews/r1", "Hi")).rejects.toBeTruthy();
+    const post = await p.createLocalPost(team, "locations/9100000002", {
+      summary: "New rooftop project done",
+      languageCode: "en",
+      cta: { type: "CALL", url: null },
+      photoUrl: null,
+    });
+    expect(post.state).toBe("LIVE");
+    await expect(
+      p.createLocalPost(team, "locations/9100000002", {
+        summary: "Hi",
+        languageCode: "en",
+        cta: { type: "LEARN_MORE", url: "http://not-https" },
+        photoUrl: null,
+      }),
+    ).rejects.toBeTruthy();
+  });
 });

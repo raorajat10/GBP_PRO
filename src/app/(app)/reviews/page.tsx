@@ -69,7 +69,7 @@ async function Inbox(f: { show: Show; client: string | null; stars: number | nul
   let q = supabase
     .from("reviews")
     .select(
-      "id, client_id, reviewer, star_rating, comment, reviewed_at, reply_comment, replied_at, client:clients(business_name, preferred_language)",
+      "id, client_id, reviewer, star_rating, comment, reviewed_at, reply_comment, replied_at, replied_by, client:clients(business_name, preferred_language)",
       { count: "exact" },
     );
   if (f.client) q = q.eq("client_id", f.client);
@@ -175,7 +175,7 @@ async function Inbox(f: { show: Show; client: string | null; stars: number | nul
               {r.reply_comment && (
                 <div className="border-primary bg-primary-soft/50 rounded-r-lg border-l-2 px-3 py-2 text-sm">
                   <p className="text-primary text-xs font-semibold">
-                    Reply on Google
+                    {r.replied_by === "auto" ? "Automatic reply on Google" : "Reply on Google"}
                     {r.replied_at ? `, ${dateFmt.format(new Date(r.replied_at))}` : ""}
                   </p>
                   <p className="mt-0.5 whitespace-pre-line">{r.reply_comment}</p>

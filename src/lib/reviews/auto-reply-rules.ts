@@ -1,0 +1,31 @@
+/** Which reviews get an automatic thank-you. Pure, unit-tested. */
+
+export interface AutoReplySettings {
+  /** When auto reply was switched on; null = off. */
+  since: string | null;
+  minStars: number;
+}
+
+export interface ReviewForAutoReply {
+  id: string;
+  starRating: number;
+  reviewedAt: string;
+  hasReply: boolean;
+}
+
+/** Most automatic replies posted for one profile in one run (the rest wait for the next run). */
+export const AUTO_REPLY_BATCH = 20;
+
+export function reviewsToAutoReply(
+  reviews: ReviewForAutoReply[],
+  settings: AutoReplySettings,
+): ReviewForAutoReply[] {
+  if (!settings.since) return [];
+  const since = Date.parse(settings.since);
+  return reviews
+    .filter(
+      (r) => !r.hasReply && r.starRating >= settings.minStars && Date.parse(r.reviewedAt) >= since,
+    )
+    .sort((a, b) => a.reviewedAt.localeCompare(b.reviewedAt))
+    .slice(0, AUTO_REPLY_BATCH);
+}

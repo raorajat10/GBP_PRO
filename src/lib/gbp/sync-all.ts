@@ -1,4 +1,5 @@
 import "server-only";
+import { autoReplyForLocation } from "@/lib/reviews/auto-reply";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { syncLocation } from "./service";
 import { dueForSync, type SyncCandidate } from "./sync-rules";
@@ -25,7 +26,7 @@ export async function syncDueLocations(opts: { budgetMs?: number; now?: Date } =
     clientStatus: l.client?.status ?? "churned",
   }));
 
-  const result = { synced: 0, failed: 0, skipped: 0, remaining: 0 };
+  const result = { synced: 0, failed: 0, skipped: 0, remaining: 0, autoReplies: 0 };
   const due = dueForSync(candidates, now);
   result.skipped = candidates.length - due.length;
   for (const [i, loc] of due.entries()) {
@@ -36,6 +37,8 @@ export async function syncDueLocations(opts: { budgetMs?: number; now?: Date } =
     try {
       await syncLocation(loc.id);
       result.synced++;
+      // Thank new good reviews if the client switched auto reply on.
+      result.autoReplies += (await autoReplyForLocation(loc.id)).posted;
     } catch (e) {
       // syncLocation already flags connections whose Google access was removed.
       console.error(`Daily sync failed for location ${loc.id}`, e);

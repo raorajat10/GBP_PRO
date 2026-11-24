@@ -55,7 +55,7 @@ export async function postReplyAction(
     }
     await createSupabaseAdminClient()
       .from("reviews")
-      .update({ reply_comment: saved.comment, replied_at: saved.updateTime })
+      .update({ reply_comment: saved.comment, replied_at: saved.updateTime, replied_by: "team" })
       .eq("id", review.id);
   } catch (e) {
     if (e instanceof GbpError) return { message: e.message };

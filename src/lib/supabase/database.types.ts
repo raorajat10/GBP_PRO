@@ -232,6 +232,8 @@ export type Database = {
       };
       clients: {
         Row: {
+          auto_reply_min_stars: number;
+          auto_reply_since: string | null;
           rank_points_per_month: number;
           assigned_manager_id: string | null;
           brand_notes: string | null;
@@ -251,6 +253,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          auto_reply_min_stars?: number;
+          auto_reply_since?: string | null;
           rank_points_per_month?: number;
           assigned_manager_id?: string | null;
           brand_notes?: string | null;
@@ -269,6 +273,8 @@ export type Database = {
           whatsapp_opt_in_at?: string | null;
         };
         Update: {
+          auto_reply_min_stars?: number;
+          auto_reply_since?: string | null;
           rank_points_per_month?: number;
           assigned_manager_id?: string | null;
           brand_notes?: string | null;
@@ -1022,6 +1028,7 @@ export type Database = {
           id: string;
           location_id: string;
           replied_at: string | null;
+          replied_by: string | null;
           reply_comment: string | null;
           reviewed_at: string;
           reviewer: string;
@@ -1036,6 +1043,7 @@ export type Database = {
           id?: string;
           location_id: string;
           replied_at?: string | null;
+          replied_by?: string | null;
           reply_comment?: string | null;
           reviewed_at: string;
           reviewer: string;
@@ -1049,6 +1057,7 @@ export type Database = {
           id?: string;
           location_id?: string;
           replied_at?: string | null;
+          replied_by?: string | null;
           reply_comment?: string | null;
           reviewed_at?: string;
           reviewer?: string;

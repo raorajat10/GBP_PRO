@@ -1,5 +1,6 @@
 "use server";
 
+import { autoReplyForLocation } from "@/lib/reviews/auto-reply";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -56,13 +57,20 @@ export async function syncProfileAction(
   ) {
     return { message: "You don't have access to this profile." };
   }
+  let replied = 0;
   try {
     await syncLocation(locationId, user.id);
+    replied = (await autoReplyForLocation(locationId)).posted;
   } catch (e) {
     return failure(e);
   }
   refresh();
-  return { ok: true, message: "Synced just now." };
+  return {
+    ok: true,
+    message: replied
+      ? `Synced just now. Auto reply thanked ${replied} new ${replied === 1 ? "review" : "reviews"}.`
+      : "Synced just now.",
+  };
 }
 
 export async function unlinkProfileAction(

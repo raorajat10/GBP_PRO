@@ -400,6 +400,7 @@ const PAGES: [string, string][] = [
   ["/home/listing/services", "Services"],
   ["/home/listing/photos", "Photos"],
   ["/home/reviews", "Google reviews"],
+  ["/home/reviews/auto-reply", "Auto reply"],
   ["/home/reviews/feedback", "Private feedback"],
   ["/home/insights/score", "Profile score"],
   ["/home/insights/analytics", "Analytics"],

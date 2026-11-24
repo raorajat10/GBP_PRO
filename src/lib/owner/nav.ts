@@ -26,6 +26,7 @@ export const OWNER_NAV: NavGroup[] = [
     label: "Reviews",
     links: [
       { href: "/home/reviews", label: "Google reviews" },
+      { href: "/home/reviews/auto-reply", label: "Auto reply" },
       { href: "/home/reviews/feedback", label: "Private feedback" },
     ],
   },

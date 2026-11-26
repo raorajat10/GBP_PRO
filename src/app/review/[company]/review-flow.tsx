@@ -67,7 +67,7 @@ export function ReviewFlow({
   company: { slug: string; name: string };
   reviewUrl: string | null;
 }) {
-  const [rating, setRating] = useState(0);
+  const [rating] = useState(0); // star box removed; kept for the draft and feedback steps
   const [draft, setDraft] = useState<string | null>(null);
   const [note] = useState("");
   const [error, setError] = useState("");
@@ -78,7 +78,6 @@ export function ReviewFlow({
   const [allSamples, setAllSamples] = useState<SampleComment[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [samplesError, setSamplesError] = useState(false);
-  const [showSamples, setShowSamples] = useState(false);
   const [sampleFile, setSampleFile] = useState<{
     business?: string;
     description?: string;
@@ -174,50 +173,9 @@ export function ReviewFlow({
 
   return (
     <div className="grid gap-5">
-      {/* 1. Rating */}
-      <section className="border-line bg-surface rounded-2xl border p-5">
-        <p className="text-primary text-sm font-semibold">01 / Your rating</p>
-
-        <div className="mt-3 flex gap-1" role="radiogroup" aria-label="Star rating">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              type="button"
-              role="radio"
-              aria-checked={rating === n}
-              aria-label={`${n} star${n > 1 ? "s" : ""}`}
-              onClick={() => setRating(n)}
-              className={`text-3xl leading-none ${
-                n <= rating ? "text-amber-500" : "text-ink-muted/40"
-              }`}
-            >
-              ★
-            </button>
-          ))}
-        </div>
-
-        {rating > 0 && rating <= 3 && (
-          <p className="text-ink-muted mt-3 text-sm">
-            Sorry it wasn&apos;t great. You can post on Google, and/or{" "}
-            <button
-              type="button"
-              className="text-primary font-semibold underline"
-              onClick={() => setShowPrivate(true)}
-            >
-              tell {company.name} privately
-            </button>{" "}
-            so they can fix it.
-          </p>
-        )}
-      </section>
-
       {/* Company-specific inspiration */}
       <section className="border-line bg-surface rounded-2xl border p-5">
-        <button
-          type="button"
-          onClick={() => setShowSamples((v) => !v)}
-          className="flex w-full items-center justify-between text-left"
-        >
+        <div>
           <div>
             <p className="text-sm font-semibold">
               Review examples for {sampleFile?.business || company.name}
@@ -236,11 +194,9 @@ export function ReviewFlow({
               </p>
             )}
           </div>
+        </div>
 
-          <span className="text-lg">{showSamples ? "−" : "+"}</span>
-        </button>
-
-        {showSamples && (
+        {
           <div className="mt-4 grid gap-4">
             {/* Topic filter */}
             <div>
@@ -330,7 +286,7 @@ export function ReviewFlow({
               review based on your actual experience.
             </p>
           </div>
-        )}
+        }
       </section>
 
       {/* 3. Review draft */}

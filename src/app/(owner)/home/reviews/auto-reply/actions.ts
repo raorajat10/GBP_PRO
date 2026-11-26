@@ -4,7 +4,11 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireOwnerBusiness } from "@/lib/owner/context";
 import type { OwnerFormState } from "@/lib/owner/forms";
+import { GbpError } from "@/lib/gbp/types";
+import { thankUnansweredGood } from "@/lib/reviews/auto-reply";
+import { backlogMessage } from "@/lib/reviews/auto-reply-rules";
 import { setAutoReply } from "@/lib/reviews/auto-reply-settings";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
   enabled: z.enum(["on", "off"]),
@@ -30,4 +34,23 @@ export async function saveOwnerAutoReply(_: OwnerFormState, fd: FormData): Promi
     ok: true,
     message: parsed.data.enabled === "on" ? "Auto reply is on." : "Auto reply is off.",
   };
+}
+
+/** Owner: thank every old good review of their business that has no reply (up to 50 a press). */
+export async function thankOwnBacklog(_: OwnerFormState, _fd: FormData): Promise<OwnerFormState> {
+  const { business } = await requireOwnerBusiness();
+  const { data: client } = await createSupabaseAdminClient()
+    .from("clients")
+    .select("auto_reply_min_stars")
+    .eq("id", business.id)
+    .single();
+  try {
+    const result = await thankUnansweredGood(business.id, client?.auto_reply_min_stars ?? 4);
+    refresh();
+    return { ok: result.failed === 0, message: backlogMessage(result) };
+  } catch (e) {
+    if (e instanceof GbpError) return { message: e.message };
+    console.error(e);
+    return { message: "Couldn't reach Google. Try again." };
+  }
 }

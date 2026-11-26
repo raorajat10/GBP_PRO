@@ -163,3 +163,34 @@ test("owner switches auto reply on; the next sync thanks only new good reviews",
     page.getByRole("region", { name: "Automatic replies" }).getByText("Ravi Kumar"),
   ).toBeVisible();
 });
+
+test("owner thanks the old unanswered good reviews in one tap; low ratings are skipped", async ({
+  page,
+}) => {
+  // Left over from the first test: the old 5-star (before switch-on) and the 2-star review.
+  const { data: before } = await service
+    .from("reviews")
+    .select("id, star_rating")
+    .eq("client_id", clientId)
+    .ilike("comment", `${tag}%`)
+    .is("replied_at", null);
+  const old5 = before!.find((r) => r.star_rating === 5)!.id;
+  const low = before!.find((r) => r.star_rating === 2)!.id;
+
+  await signIn(page, ownerEmail, /\/home$/);
+  await page.goto("/home/reviews/auto-reply");
+  page.once("dialog", (d) => d.accept()); // the "are you sure" question
+  await page.getByRole("button", { name: /Thank all unanswered good reviews/ }).click();
+  await expect(page.getByText(/Thanked \d+ reviews? on Google\./)).toBeVisible({ timeout: 30_000 });
+
+  const { data: after } = await service
+    .from("reviews")
+    .select("id, reply_comment, replied_by")
+    .in("id", [old5, low]);
+  const byId = new Map((after ?? []).map((r) => [r.id, r]));
+  expect(byId.get(old5)).toMatchObject({
+    replied_by: "auto",
+    reply_comment: expect.stringMatching(/^Thank you, Old, for the wonderful review!/),
+  });
+  expect(byId.get(low)?.reply_comment).toBeNull();
+});

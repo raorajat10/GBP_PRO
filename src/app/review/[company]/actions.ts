@@ -1,7 +1,11 @@
+
 "use server";
 
 import { z } from "zod";
-import { polishCustomerReview, type ReviewLanguage } from "@/lib/ai/review-polish";
+import {
+  polishCustomerReview,
+  type ReviewLanguage,
+} from "@/lib/ai/review-polish";
 import { AiError } from "@/lib/ai/writer";
 import { getPublicClient } from "@/lib/clients/public";
 import { notifyClient } from "@/lib/notifications/service";
@@ -27,12 +31,30 @@ export async function polishReviewAction(input: {
   language: ReviewLanguage;
 }): Promise<{ text?: string; sample?: boolean; error?: string }> {
   const parsed = polishSchema.safeParse(input);
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your text." };
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Check your text.",
+    };
+  }
 
   const client = await getPublicClient(parsed.data.company);
-  if (!client) return { error: "This review link isn't valid." };
-  if (!(await allowPublicRequest(`polish:${client.slug}`, { max: 10, windowMs: 10 * 60_000 })))
-    return { error: "Too many tries. Please wait a few minutes, or post your words as written." };
+
+  if (!client) {
+    return { error: "This review link isn't valid." };
+  }
+
+  if (
+    !(await allowPublicRequest(`polish:${client.slug}`, {
+      max: 10,
+      windowMs: 10 * 60_000,
+    }))
+  ) {
+    return {
+      error:
+        "Too many tries. Please wait a few minutes, or post your words as written.",
+    };
+  }
 
   try {
     return await polishCustomerReview({
@@ -66,7 +88,7 @@ const feedbackSchema = z.object({
     .transform((v) => (v === "" ? null : v)),
 });
 
-/** Private message to the business (seen by our team on the client page). */
+/** Private message to the business. */
 export async function sendPrivateFeedbackAction(input: {
   company: string;
   rating: number | null;
@@ -74,20 +96,43 @@ export async function sendPrivateFeedbackAction(input: {
   contact: string;
 }): Promise<{ ok?: boolean; error?: string }> {
   const parsed = feedbackSchema.safeParse(input);
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Check the form.",
+    };
+  }
 
   const client = await getPublicClient(parsed.data.company);
-  if (!client) return { error: "This review link isn't valid." };
-  if (!(await allowPublicRequest(`feedback:${client.slug}`, { max: 5, windowMs: 10 * 60_000 })))
-    return { error: "Too many messages. Please wait a few minutes." };
 
-  const { error } = await createSupabaseAdminClient().from("review_feedback").insert({
-    client_id: client.id,
-    rating: parsed.data.rating,
-    message: parsed.data.message,
-    contact: parsed.data.contact,
-  });
-  if (error) return { error: "Couldn't send your message. Please try again." };
+  if (!client) {
+    return { error: "This review link isn't valid." };
+  }
+
+  if (
+    !(await allowPublicRequest(`feedback:${client.slug}`, {
+      max: 5,
+      windowMs: 10 * 60_000,
+    }))
+  ) {
+    return {
+      error: "Too many messages. Please wait a few minutes.",
+    };
+  }
+
+  const { error } = await createSupabaseAdminClient()
+    .from("review_feedback")
+    .insert({
+      client_id: client.id,
+      rating: parsed.data.rating,
+      message: parsed.data.message,
+      contact: parsed.data.contact,
+    });
+
+  if (error) {
+    return { error: "Couldn't send your message. Please try again." };
+  }
+
   await notifyClient({
     clientId: client.id,
     kind: "feedback",
@@ -95,5 +140,6 @@ export async function sendPrivateFeedbackAction(input: {
     body: parsed.data.message.slice(0, 160),
     link: "/home/reviews/feedback",
   });
+
   return { ok: true };
 }

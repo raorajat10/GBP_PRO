@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { AUTO_REPLY_BATCH, reviewsToAutoReply } from "@/lib/reviews/auto-reply-rules";
+import {
+  AUTO_REPLY_BATCH,
+  backlogMessage,
+  reviewsToAutoReply,
+} from "@/lib/reviews/auto-reply-rules";
+
+describe("backlogMessage", () => {
+  it("says what happened and what's left", () => {
+    expect(backlogMessage({ posted: 0, failed: 0, remaining: 0 })).toBe(
+      "Every good review already has a reply.",
+    );
+    expect(backlogMessage({ posted: 1, failed: 0, remaining: 0 })).toBe(
+      "Thanked 1 review on Google.",
+    );
+    expect(backlogMessage({ posted: 50, failed: 2, remaining: 12 })).toBe(
+      "Thanked 50 reviews on Google. 2 couldn't be posted; try again later. 12 more left: press again to continue.",
+    );
+  });
+});
 
 const since = "2026-11-24T10:00:00Z";
 const r = (id: string, stars: number, at: string, hasReply = false) => ({

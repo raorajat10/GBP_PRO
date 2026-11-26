@@ -1,0 +1,166 @@
+{
+  "business": "Rajasthan Battery House",
+  "description": "Illustrative review prompts only. Customers should describe their own genuine experience.",
+  "templates": [
+    {
+      "id": 1,
+      "business": "Rajasthan Battery House",
+      "topic": "Installation",
+      "language": "en",
+      "style": "preview",
+      "text": "Mention whether the installation process was explained clearly, how the technician handled the setup, and whether you received helpful instructions before using your battery."
+    },
+    {
+      "id": 2,
+      "business": "Rajasthan Battery House",
+      "topic": "Installation",
+      "language": "en",
+      "style": "preview",
+      "text": "Describe your installation experience, including the time taken, cleanliness of the work, safety precautions followed, and how clearly the team explained operating instructions."
+    },
+    {
+      "id": 3,
+      "business": "Rajasthan Battery House",
+      "topic": "Installation",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Installation ke experience ke baare mein likhein, technician ne setup kaise kiya, safety explain ki ya nahi, aur battery use karna kitna easy laga."
+    },
+    {
+      "id": 4,
+      "business": "Rajasthan Battery House",
+      "topic": "Installation",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Apna installation experience share karein, team time par aayi thi ya nahi, fitting properly hui, aur battery chalane ki instructions clearly samjhayi gayi."
+    },
+    {
+      "id": 5,
+      "business": "Rajasthan Battery House",
+      "topic": "Quality",
+      "language": "en",
+      "style": "preview",
+      "text": "Share what you noticed about battery quality, packaging, product condition, performance expectations, and whether the staff helped you understand the specifications before purchasing."
+    },
+    {
+      "id": 6,
+      "business": "Rajasthan Battery House",
+      "topic": "Quality",
+      "language": "en",
+      "style": "preview",
+      "text": "Explain which product features mattered to you, how the available options were compared, and whether the battery quality matched your requirements and budget."
+    },
+    {
+      "id": 7,
+      "business": "Rajasthan Battery House",
+      "topic": "Quality",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Battery ki quality, product options, specifications aur packaging ke baare mein apna experience batayein, aur purchase se pehle kya information mili."
+    },
+    {
+      "id": 8,
+      "business": "Rajasthan Battery House",
+      "topic": "Quality",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Aapko battery ke features aur quality kaise lage, staff ne different models compare karwaye ya nahi, aur aapki requirements ke hisaab se kya suggest kiya."
+    },
+    {
+      "id": 9,
+      "business": "Rajasthan Battery House",
+      "topic": "Service",
+      "language": "en",
+      "style": "preview",
+      "text": "Describe how the staff treated you, whether your questions were answered patiently, how convenient the purchase process felt, and what stood out during your visit."
+    },
+    {
+      "id": 10,
+      "business": "Rajasthan Battery House",
+      "topic": "Service",
+      "language": "en",
+      "style": "preview",
+      "text": "Share your experience with customer service, communication, product recommendations, billing clarity, and whether the team helped you make an informed purchasing decision."
+    },
+    {
+      "id": 11,
+      "business": "Rajasthan Battery House",
+      "topic": "Service",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Staff ka behaviour, product samjhane ka tareeka, billing process aur overall service experience kaisa raha, apne words mein share karein."
+    },
+    {
+      "id": 12,
+      "business": "Rajasthan Battery House",
+      "topic": "Service",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Shop par visit ke time staff kitna helpful tha, queries ka response kaisa mila, aur product select karne mein kitni assistance mili."
+    },
+    {
+      "id": 13,
+      "business": "Rajasthan Battery House",
+      "topic": "Support",
+      "language": "en",
+      "style": "preview",
+      "text": "Describe the assistance you received after purchasing, including maintenance guidance, warranty information, troubleshooting help, and how easily you could contact the staff."
+    },
+    {
+      "id": 14,
+      "business": "Rajasthan Battery House",
+      "topic": "Support",
+      "language": "en",
+      "style": "preview",
+      "text": "Share whether your questions after purchase were handled properly, what guidance you received about battery care, and how helpful the support team was."
+    },
+    {
+      "id": 15,
+      "business": "Rajasthan Battery House",
+      "topic": "Support",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Purchase ke baad support kaisa mila, warranty details samjhayi gayi, maintenance tips diye aur problem hone par contact karna kitna convenient raha."
+    },
+    {
+      "id": 16,
+      "business": "Rajasthan Battery House",
+      "topic": "Support",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Battery related queries par team ne kya help ki, troubleshooting samjhayi ya nahi, aur after-sales service ke experience ko apne words mein describe karein."
+    },
+    {
+      "id": 17,
+      "business": "Rajasthan Battery House",
+      "topic": "Overall",
+      "language": "en",
+      "style": "preview",
+      "text": "Summarize your overall experience, mentioning product selection, staff communication, pricing transparency, service quality, and anything that made your visit memorable."
+    },
+    {
+      "id": 18,
+      "business": "Rajasthan Battery House",
+      "topic": "Overall",
+      "language": "en",
+      "style": "preview",
+      "text": "Describe your visit from beginning to end, what you purchased, how the team assisted you, and whether the experience met your expectations."
+    },
+    {
+      "id": 19,
+      "business": "Rajasthan Battery House",
+      "topic": "Overall",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Rajasthan Battery House par overall experience share karein, product selection, staff behaviour, pricing, service aur visit ke dauran mili assistance ke baare mein."
+    },
+    {
+      "id": 20,
+      "business": "Rajasthan Battery House",
+      "topic": "Overall",
+      "language": "hi-en",
+      "style": "preview",
+      "text": "Aapki shop visit kaisi rahi, battery choose karne mein kitni help mili, staff ka response kaisa tha aur overall experience expectations ke according raha."
+    }
+  ]
+}

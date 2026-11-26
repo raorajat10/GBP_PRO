@@ -13,7 +13,9 @@ import {
   Panel,
   Stars,
 } from "@/components/owner/ui";
-import { saveOwnerAutoReply } from "./actions";
+import { saveOwnerAutoReply, thankOwnBacklog } from "./actions";
+import { countUnansweredGood } from "@/lib/reviews/auto-reply";
+import { BacklogButton } from "@/components/backlog-button";
 
 export const metadata: Metadata = { title: "Auto reply" };
 
@@ -50,6 +52,8 @@ async function AutoReply() {
       .order("replied_at", { ascending: false })
       .limit(30),
   ]);
+  const minStars = client?.auto_reply_min_stars ?? 4;
+  const backlog = await countUnansweredGood(business.id, minStars);
 
   return (
     <>
@@ -60,6 +64,7 @@ async function AutoReply() {
           minStars={client?.auto_reply_min_stars ?? 4}
           since={client?.auto_reply_since ?? null}
         />
+        <BacklogButton count={backlog} minStars={minStars} action={thankOwnBacklog} />
       </Panel>
       <Panel title="Automatic replies" description="The latest thank-yous posted for you">
         {history?.length ? (

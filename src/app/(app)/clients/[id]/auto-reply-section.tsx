@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AutoReplyForm } from "@/components/auto-reply-form";
-import { saveClientAutoReply } from "../auto-reply-actions";
+import { saveClientAutoReply, thankBacklogForClient } from "../auto-reply-actions";
+import { countUnansweredGood } from "@/lib/reviews/auto-reply";
+import { BacklogButton } from "@/components/backlog-button";
 
 /** Team view of a client's auto reply setting. Caller has checked access to the client. */
 export async function AutoReplySection({ clientId }: { clientId: string }) {
@@ -17,6 +19,8 @@ export async function AutoReplySection({ clientId }: { clientId: string }) {
       .eq("client_id", clientId)
       .eq("replied_by", "auto"),
   ]);
+  const minStars = client?.auto_reply_min_stars ?? 4;
+  const backlog = await countUnansweredGood(clientId, minStars);
   return (
     <section
       aria-labelledby="auto-reply-h"
@@ -35,6 +39,11 @@ export async function AutoReplySection({ clientId }: { clientId: string }) {
         enabled={Boolean(client?.auto_reply_since)}
         minStars={client?.auto_reply_min_stars ?? 4}
         since={client?.auto_reply_since ?? null}
+      />
+      <BacklogButton
+        count={backlog}
+        minStars={minStars}
+        action={thankBacklogForClient.bind(null, clientId)}
       />
     </section>
   );

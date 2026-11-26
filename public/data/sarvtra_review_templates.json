@@ -2,8 +2,7 @@
   "business": "Sarvtra Energy",
   "description": "Fictional sample writing prompts for UI testing only; not genuine customer reviews or testimonials.",
   "total": 1000,
-  "min_words_per_template": 20,
-  "max_words_per_template": 30,
+   "href":"https://www.google.com/search?q=sarvatraenergy&oq=sarvatraenergy&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRg8Mg8IAhAuGA0YrwEYxwEYgAQyCAgDEAAYDRgeMggIBBAAGA0YHjIGCAUQRRg8MgYIBhBFGDwyBggHEEUYPdIBCDczMTdqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8#lrd=0x396dc9c81a44c6dd:0xef2fd7d9a8392b1c,3,,,,",
   "templates": [
     {
       "id": 1,

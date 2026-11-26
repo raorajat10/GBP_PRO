@@ -1,11 +1,7 @@
-
 "use server";
 
 import { z } from "zod";
-import {
-  polishCustomerReview,
-  type ReviewLanguage,
-} from "@/lib/ai/review-polish";
+import { polishCustomerReview, type ReviewLanguage } from "@/lib/ai/review-polish";
 import { AiError } from "@/lib/ai/writer";
 import { getPublicClient } from "@/lib/clients/public";
 import { notifyClient } from "@/lib/notifications/service";
@@ -51,8 +47,7 @@ export async function polishReviewAction(input: {
     }))
   ) {
     return {
-      error:
-        "Too many tries. Please wait a few minutes, or post your words as written.",
+      error: "Too many tries. Please wait a few minutes, or post your words as written.",
     };
   }
 
@@ -120,14 +115,12 @@ export async function sendPrivateFeedbackAction(input: {
     };
   }
 
-  const { error } = await createSupabaseAdminClient()
-    .from("review_feedback")
-    .insert({
-      client_id: client.id,
-      rating: parsed.data.rating,
-      message: parsed.data.message,
-      contact: parsed.data.contact,
-    });
+  const { error } = await createSupabaseAdminClient().from("review_feedback").insert({
+    client_id: client.id,
+    rating: parsed.data.rating,
+    message: parsed.data.message,
+    contact: parsed.data.contact,
+  });
 
   if (error) {
     return { error: "Couldn't send your message. Please try again." };

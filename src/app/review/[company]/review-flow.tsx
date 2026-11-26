@@ -1,20 +1,12 @@
-
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import {
-  polishReviewAction,
-  sendPrivateFeedbackAction,
-} from "./actions";
+import { sendPrivateFeedbackAction } from "./actions";
+import { getSampleComments } from "@/lib/reviews/sample-comments";
 
 type Language = "en" | "hi" | "hinglish";
 
-type Topic =
-  | "Installation"
-  | "Quality"
-  | "Service"
-  | "Support"
-  | "Overall";
+type Topic = "Installation" | "Quality" | "Service" | "Support" | "Overall";
 
 type SampleComment = {
   id: number;
@@ -23,46 +15,38 @@ type SampleComment = {
   language: string;
   style: string;
   text: string;
+  /** Optional link for this example's button; defaults to the business's Google review link. */
+  href?: string;
 };
 
-const PROMPTS = [
-  {
-    id: "what",
-    label: "What did they do for you?",
-    placeholder: "e.g. installed a battery or solar system",
-  },
-  {
-    id: "good",
-    label: "What did you like?",
-    placeholder: "e.g. staff were helpful and explained everything",
-  },
-  {
-    id: "better",
-    label: "Anything they could do better?",
-    placeholder: "Optional",
-  },
-] as const;
-
-const TOPICS: Topic[] = [
-  "Installation",
-  "Quality",
-  "Service",
-  "Support",
-  "Overall",
-];
+const TOPICS: Topic[] = ["Installation", "Quality", "Service", "Support", "Overall"];
 
 const field =
   "border-line focus:border-primary focus:ring-primary/20 w-full rounded-xl border bg-transparent p-3 text-sm outline-none focus:ring-2";
 
-function shuffle<T>(items: T[]): T[] {
+function shuffle<T>(items: T[], seed: number): T[] {
   const array = [...items];
+  let x = (seed * 2654435761 + 1) >>> 0;
+  const next = () => {
+    x = (x * 1664525 + 1013904223) >>> 0;
+    return x / 2 ** 32;
+  };
 
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(next() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
 
   return array;
+}
+
+/** JSON files may say "English"/"Hindi"/"Hinglish" or "en"/"hi"/"hi-en". */
+function normaliseLanguage(value: string | undefined) {
+  const v = (value ?? "").trim().toLowerCase();
+  if (v === "english" || v === "en") return "en";
+  if (v === "hindi" || v === "hi") return "hi";
+  if (v === "hinglish" || v === "hi-en") return "hi-en";
+  return v;
 }
 
 function jsonLanguage(language: Language) {
@@ -84,27 +68,29 @@ export function ReviewFlow({
   reviewUrl: string | null;
 }) {
   const [rating, setRating] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [language, setLanguage] = useState<Language>("en");
   const [draft, setDraft] = useState<string | null>(null);
-  const [note, setNote] = useState("");
+  const [note] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [showPrivate, setShowPrivate] = useState(false);
-  const [pending, startTransition] = useTransition();
 
   // Company-specific JSON comment bank
   const [allSamples, setAllSamples] = useState<SampleComment[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [samplesError, setSamplesError] = useState(false);
   const [showSamples, setShowSamples] = useState(false);
+  const [sampleFile, setSampleFile] = useState<{
+    business?: string;
+    description?: string;
+    total?: number;
+    min?: number;
+    max?: number;
+  } | null>(null);
 
   const [sampleTopic, setSampleTopic] = useState<Topic>("Overall");
-  const [sampleLanguage, setSampleLanguage] =
-    useState<Language>("en");
+  const [sampleLanguage, setSampleLanguage] = useState<Language>("en");
 
-  const [visibleSamples, setVisibleSamples] =
-    useState<SampleComment[]>([]);
+  const [shuffleSeed, setShuffleSeed] = useState(0);
 
   // Load company-specific JSON automatically
   useEffect(() => {
@@ -116,22 +102,22 @@ export function ReviewFlow({
       setAllSamples([]);
 
       try {
-        const filename = `${company.slug}_review_templates.json`;
+        const data = await getSampleComments(company.slug);
 
-        const response = await fetch(`/data/${filename}`);
-
-        if (!response.ok) {
-          throw new Error("Sample file not found");
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data.templates)) {
+        if (!data || !Array.isArray(data.templates)) {
           throw new Error("Invalid sample file");
         }
 
         if (!cancelled) {
           setAllSamples(data.templates);
+          setShuffleSeed(Math.floor(Math.random() * 1_000_000));
+          setSampleFile({
+            business: data.business,
+            description: data.description,
+            total: data.total ?? data.templates.length,
+            min: data.min_words_per_template,
+            max: data.max_words_per_template,
+          });
         }
       } catch {
         if (!cancelled) {
@@ -158,55 +144,19 @@ export function ReviewFlow({
 
     return allSamples.filter(
       (sample) =>
-        sample.topic === sampleTopic &&
-        sample.language === selectedLanguage
+        sample.topic?.trim().toLowerCase() === sampleTopic.toLowerCase() &&
+        normaliseLanguage(sample.language) === selectedLanguage,
     );
   }, [allSamples, sampleTopic, sampleLanguage]);
 
-  // Select random 5 examples whenever filter changes
-  useEffect(() => {
-    setVisibleSamples(shuffle(filteredSamples).slice(0, 5));
-  }, [filteredSamples]);
+  // 5 examples in a mixed order; "Show 5 different examples" picks a new order
+  const visibleSamples = useMemo(
+    () => shuffle(filteredSamples, shuffleSeed).slice(0, 5),
+    [filteredSamples, shuffleSeed],
+  );
 
   function refreshSamples() {
-    setVisibleSamples(shuffle(filteredSamples).slice(0, 5));
-  }
-
-  // Customer's own words
-  const notes = PROMPTS.map((p) => answers[p.id]?.trim())
-    .filter(Boolean)
-    .join(". ");
-
-  function applyAsWritten() {
-    setError("");
-    setNote("");
-    setDraft(notes);
-  }
-
-  function tidy() {
-    setError("");
-
-    startTransition(async () => {
-      const result = await polishReviewAction({
-        company: company.slug,
-        notes,
-        rating,
-        language,
-      });
-
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-
-      setDraft(result.text ?? notes);
-
-      setNote(
-        result.sample
-          ? "Basic tidy only. Check it says what you mean."
-          : "Tidied from your words only. Check it says what you mean and change anything."
-      );
-    });
+    setShuffleSeed((s) => s + 1);
   }
 
   async function copyAndOpen() {
@@ -216,9 +166,7 @@ export function ReviewFlow({
       await navigator.clipboard.writeText(draft.trim());
       setCopied(true);
     } catch {
-      setError(
-        "Couldn't copy automatically. Select the text and copy it yourself."
-      );
+      setError("Couldn't copy automatically. Select the text and copy it yourself.");
     }
 
     window.open(reviewUrl, "_blank", "noopener");
@@ -228,15 +176,9 @@ export function ReviewFlow({
     <div className="grid gap-5">
       {/* 1. Rating */}
       <section className="border-line bg-surface rounded-2xl border p-5">
-        <p className="text-primary text-sm font-semibold">
-          01 / Your rating
-        </p>
+        <p className="text-primary text-sm font-semibold">01 / Your rating</p>
 
-        <div
-          className="mt-3 flex gap-1"
-          role="radiogroup"
-          aria-label="Star rating"
-        >
+        <div className="mt-3 flex gap-1" role="radiogroup" aria-label="Star rating">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
@@ -246,9 +188,7 @@ export function ReviewFlow({
               aria-label={`${n} star${n > 1 ? "s" : ""}`}
               onClick={() => setRating(n)}
               className={`text-3xl leading-none ${
-                n <= rating
-                  ? "text-amber-500"
-                  : "text-ink-muted/40"
+                n <= rating ? "text-amber-500" : "text-ink-muted/40"
               }`}
             >
               ★
@@ -258,7 +198,7 @@ export function ReviewFlow({
 
         {rating > 0 && rating <= 3 && (
           <p className="text-ink-muted mt-3 text-sm">
-            Sorry it wasn't great. You can post on Google, and/or{" "}
+            Sorry it wasn&apos;t great. You can post on Google, and/or{" "}
             <button
               type="button"
               className="text-primary font-semibold underline"
@@ -271,78 +211,6 @@ export function ReviewFlow({
         )}
       </section>
 
-      {/* 2. Customer's own words */}
-      {rating > 0 && (
-        <section className="border-line bg-surface grid gap-4 rounded-2xl border p-5">
-          <div>
-            <p className="text-primary text-sm font-semibold">
-              02 / In your own words
-            </p>
-
-            <p className="text-ink-muted mt-1 text-sm">
-              A few words about your actual experience is enough.
-              Answer only what you want to.
-            </p>
-          </div>
-
-          {PROMPTS.map((p) => (
-            <label
-              key={p.id}
-              className="grid gap-1.5 text-sm font-semibold"
-            >
-              {p.label}
-
-              <textarea
-                rows={2}
-                maxLength={600}
-                placeholder={p.placeholder}
-                value={answers[p.id] ?? ""}
-                onChange={(e) =>
-                  setAnswers((a) => ({
-                    ...a,
-                    [p.id]: e.target.value,
-                  }))
-                }
-                className={`${field} font-normal`}
-              />
-            </label>
-          ))}
-
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Language"
-              value={language}
-              onChange={(e) =>
-                setLanguage(e.target.value as Language)
-              }
-              className="border-line bg-surface rounded-xl border px-3 py-2 text-sm"
-            >
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="hinglish">Hinglish</option>
-            </select>
-
-            <button
-              type="button"
-              disabled={!notes || pending}
-              onClick={tidy}
-              className="bg-primary text-primary-ink rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50"
-            >
-              {pending ? "Tidying…" : "Tidy my words"}
-            </button>
-
-            <button
-              type="button"
-              disabled={!notes || pending}
-              onClick={applyAsWritten}
-              className="border-line rounded-xl border px-4 py-2 text-sm font-semibold disabled:opacity-50"
-            >
-              Use as written
-            </button>
-          </div>
-        </section>
-      )}
-
       {/* Company-specific inspiration */}
       <section className="border-line bg-surface rounded-2xl border p-5">
         <button
@@ -352,32 +220,35 @@ export function ReviewFlow({
         >
           <div>
             <p className="text-sm font-semibold">
-              Review examples for {company.name}
+              Review examples for {sampleFile?.business || company.name}
             </p>
 
             <p className="text-ink-muted mt-1 text-xs">
-              Ideas to help you describe your own experience
+              {sampleFile?.description || "Ideas to help you describe your own experience"}
             </p>
+
+            {sampleFile?.total != null && (
+              <p className="text-ink-muted mt-1 text-xs">
+                {sampleFile.total} examples
+                {sampleFile.min != null && sampleFile.max != null
+                  ? `, ${sampleFile.min}–${sampleFile.max} words each`
+                  : ""}
+              </p>
+            )}
           </div>
 
-          <span className="text-lg">
-            {showSamples ? "−" : "+"}
-          </span>
+          <span className="text-lg">{showSamples ? "−" : "+"}</span>
         </button>
 
         {showSamples && (
           <div className="mt-4 grid gap-4">
             {/* Topic filter */}
             <div>
-              <label className="mb-1 block text-xs font-medium">
-                Topic
-              </label>
+              <label className="mb-1 block text-xs font-medium">Topic</label>
 
               <select
                 value={sampleTopic}
-                onChange={(e) =>
-                  setSampleTopic(e.target.value as Topic)
-                }
+                onChange={(e) => setSampleTopic(e.target.value as Topic)}
                 className="border-line bg-surface w-full rounded-xl border px-3 py-2 text-sm"
               >
                 {TOPICS.map((topic) => (
@@ -390,15 +261,11 @@ export function ReviewFlow({
 
             {/* Language filter */}
             <div>
-              <label className="mb-1 block text-xs font-medium">
-                Example language
-              </label>
+              <label className="mb-1 block text-xs font-medium">Example language</label>
 
               <select
                 value={sampleLanguage}
-                onChange={(e) =>
-                  setSampleLanguage(e.target.value as Language)
-                }
+                onChange={(e) => setSampleLanguage(e.target.value as Language)}
                 className="border-line bg-surface w-full rounded-xl border px-3 py-2 text-sm"
               >
                 <option value="en">English</option>
@@ -408,12 +275,10 @@ export function ReviewFlow({
             </div>
 
             {samplesLoading ? (
-              <p className="text-ink-muted text-sm">
-                Loading examples…
-              </p>
+              <p className="text-ink-muted text-sm">Loading examples…</p>
             ) : samplesError ? (
               <p className="text-ink-muted text-sm">
-                Examples aren't available for this business yet.
+                Examples aren&apos;t available for this business yet.
               </p>
             ) : filteredSamples.length === 0 ? (
               <p className="text-ink-muted text-sm">
@@ -429,11 +294,23 @@ export function ReviewFlow({
                     >
                       <p className="text-primary text-xs font-semibold">
                         {sample.topic}
+                        {sample.style && (
+                          <span className="text-ink-muted font-normal"> ({sample.style})</span>
+                        )}
                       </p>
 
-                      <p className="mt-2 text-sm leading-relaxed">
-                        {sample.text}
-                      </p>
+                      <p className="mt-2 text-sm leading-relaxed">{sample.text}</p>
+
+                      {(sample.href || reviewUrl) && (
+                        <a
+                          href={sample.href || reviewUrl || undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-primary text-primary-ink mt-3 inline-block rounded-xl px-4 py-2 text-sm font-semibold"
+                        >
+                          Write your review on Google
+                        </a>
+                      )}
                     </article>
                   ))}
                 </div>
@@ -449,8 +326,8 @@ export function ReviewFlow({
             )}
 
             <p className="text-ink-muted text-xs">
-              These are illustrative examples, not customer testimonials.
-              Please write your own review based on your actual experience.
+              These are illustrative examples, not customer testimonials. Please write your own
+              review based on your actual experience.
             </p>
           </div>
         )}
@@ -462,15 +339,9 @@ export function ReviewFlow({
           className="border-line bg-surface grid gap-3 rounded-2xl border p-5"
           aria-live="polite"
         >
-          <p className="text-primary text-sm font-semibold">
-            03 / Check and post
-          </p>
+          <p className="text-primary text-sm font-semibold">03 / Check and post</p>
 
-          {note && (
-            <p className="bg-accent-soft rounded-lg px-3 py-2 text-xs">
-              {note}
-            </p>
-          )}
+          {note && <p className="bg-accent-soft rounded-lg px-3 py-2 text-xs">{note}</p>}
 
           <textarea
             aria-label="Your review"
@@ -489,21 +360,19 @@ export function ReviewFlow({
                 onClick={copyAndOpen}
                 className="bg-ink text-surface rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50"
               >
-                {copied
-                  ? "Copied — paste it on Google"
-                  : "Copy & open Google"}
+                {copied ? "Copied — paste it on Google" : "Copy & open Google"}
               </button>
 
               <p className="text-ink-muted text-xs">
                 On Google: choose your {rating} star
-                {rating > 1 ? "s" : ""}, paste your review, and post.
-                Google shows your name with the review.
+                {rating > 1 ? "s" : ""}, paste your review, and post. Google shows your name with
+                the review.
               </p>
             </>
           ) : (
             <p className="text-ink-muted text-sm">
-              {company.name}'s Google link isn't set up yet.
-              Copy your text and search for them on Google Maps to post it.
+              {company.name}&apos;s Google link isn&apos;t set up yet. Copy your text and search for
+              them on Google Maps to post it.
             </p>
           )}
         </section>
@@ -518,11 +387,7 @@ export function ReviewFlow({
 
       {/* Private feedback */}
       {showPrivate ? (
-        <PrivateFeedback
-          company={company}
-          rating={rating}
-          onClose={() => setShowPrivate(false)}
-        />
+        <PrivateFeedback company={company} rating={rating} onClose={() => setShowPrivate(false)} />
       ) : (
         <button
           type="button"
@@ -567,21 +432,15 @@ function PrivateFeedback({
   return (
     <section className="border-line bg-surface grid gap-3 rounded-2xl border p-5">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-semibold">
-          Private message to {company.name}
-        </p>
+        <p className="text-sm font-semibold">Private message to {company.name}</p>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-ink-muted text-xs underline"
-        >
+        <button type="button" onClick={onClose} className="text-ink-muted text-xs underline">
           Close
         </button>
       </div>
 
       <p className="text-ink-muted text-xs">
-        Only the business sees this. It isn't posted anywhere.
+        Only the business sees this. It isn&apos;t posted anywhere.
       </p>
 
       <textarea

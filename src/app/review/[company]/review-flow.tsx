@@ -49,6 +49,30 @@ function normaliseLanguage(value: string | undefined) {
   return v;
 }
 
+/**
+ * Copies text in the same tap as the click, before the Google tab opens.
+ * The old execCommand path is synchronous, so it still works after focus moves to
+ * the new tab; the Clipboard API is the backup.
+ */
+function copyText(text: string) {
+  let copied = false;
+  try {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length);
+    copied = document.execCommand("copy");
+    document.body.removeChild(area);
+  } catch {
+    copied = false;
+  }
+  if (!copied) void navigator.clipboard?.writeText(text).catch(() => {});
+}
+
 function jsonLanguage(language: Language) {
   switch (language) {
     case "en":
@@ -90,6 +114,7 @@ export function ReviewFlow({
   const [sampleLanguage, setSampleLanguage] = useState<Language>("en");
 
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const [copiedSampleId, setCopiedSampleId] = useState<number | null>(null);
 
   // Load company-specific JSON automatically
   useEffect(() => {
@@ -262,10 +287,21 @@ export function ReviewFlow({
                           href={sample.href || reviewUrl || undefined}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            // Copy first (synchronously, inside the tap), then the link opens Google.
+                            copyText(sample.text);
+                            setCopiedSampleId(sample.id);
+                          }}
                           className="bg-primary text-primary-ink mt-3 inline-block rounded-xl px-4 py-2 text-sm font-semibold"
                         >
-                          Write your review on Google
+                          Copy text and write your review on Google
                         </a>
+                      )}
+
+                      {copiedSampleId === sample.id && (
+                        <p className="text-ink-muted mt-2 text-xs" role="status">
+                          Text copied. On Google, long-press the review box and choose Paste.
+                        </p>
                       )}
                     </article>
                   ))}
